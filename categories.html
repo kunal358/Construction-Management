@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <title>Work Details</title>
+  <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+
+  <style>
+    h2 {
+      text-align: center;
+    }
+    /* Page Title */
+    .page-title {
+        text-align: center;
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    /* Form Section */
+    .form-section {
+        margin-bottom: 30px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .form-container input,
+    .form-container select,
+    .form-container button {
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        width: 100%;
+    }
+
+    .form-container button {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .form-container button:hover {
+        background-color: #0056b3;
+    }
+
+    /* Container for Side-by-Side Forms */
+    .form-container-row {
+        display: flex;
+        gap: 20px; /* Spacing between the two sections */
+        margin-bottom: 30px; /* Space below the row */
+    }
+
+    .form-box {
+        flex: 1; /* Each box takes up equal space */
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-box h2 {
+        margin-bottom: 20px;
+        font-size: 20px;
+        color: #333;
+    }
+
+    .form-box form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* Space between form elements */
+    }
+
+    .form-box input,
+    .form-box select {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    .form-box button {
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .form-box button:hover {
+        background-color: #0056b3;
+    }
+
+    /* Table Section */
+    .table-section {
+        margin-bottom: 30px;
+    }
+
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        text-align: left;
+    }
+
+    .styled-table th, .styled-table td {
+        padding: 12px;
+        border: 1px solid #ddd;
+    }
+
+    .styled-table th {
+        background-color: #f4f4f9;
+        font-weight: bold;
+    }
+
+    .styled-table tbody tr:hover {
+        background-color: #f1f1f1;
+        cursor: pointer;
+    }
+
+    .clickable {
+        color: #007bff;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    /* Subcategory Buttons */
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    /* Subcategory Table Row Hover */
+    .styled-table tbody tr:hover {
+        background-color: #f8f9fa;
+        cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="navigation">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Home</a>
+    <a href="{{ url_for('manage_customers') }}" class="btn btn-secondary">Manage Customers</a>
+    <a href="{{ url_for('manage_expenses') }}" class="btn btn-secondary">Internal Expenses</a>
+    <a href="{{ url_for('manage_categories') }}" class="btn btn-secondary">Manage Categories</a>
+  </div>
+
+  <div class="container">
+    <!-- Page Title -->
+    <header>
+      <h1 class="page-title">Manage Categories</h1>
+    </header>
+
+    <section class="form-container-row">
+      <!-- Add Category Section -->
+      <div class="form-box">
+        <h2>Add Category</h2>
+        <form action="/categories" method="POST">
+          <input type="text" name="name" placeholder="Category Name" required>
+          <select name="type" required>
+            <option value="OUTFLOW">OUTFLOW</option>
+          </select>
+          <button type="submit" class="btn btn-primary">Add Category</button>
+        </form>
+      </div>
+
+      <!-- Add Subcategory Section -->
+      <div class="form-box">
+        <h2>Add Subcategory</h2>
+        <form action="/categories" method="POST">
+          <select name="category_id" required>
+            <option value="">Select Category</option>
+            {% for category in categories %}
+              {% if category.name|lower != 'moneyflow' %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+          <input type="text" name="subcategory_name" placeholder="Subcategory Name" required>
+          <button type="submit" class="btn btn-primary">Add Subcategory</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Categories Table -->
+    <section class="table-section">
+      <h2>Categories</h2>
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Type</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in categories %}
+            <tr onclick="showSubcategories({{ category.id }})">
+              {% if category.name|lower != 'moneyflow' %}
+                <td class="clickable">{{ category.name }}</td>
+                <td>{{ category.type }}</td>
+                <td>
+                    <button class="btn btn-secondary" onclick="editCategory({{ category.id }}, '{{ category.name }}')">Edit</button>
+                </td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Subcategories Table -->
+    <section class="table-section">
+      <h2>Subcategories</h2>
+      <table class="styled-table" id="subcategory-table">
+        <thead>
+          <tr>
+            <th>Subcategory</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="subcategory-list">
+          <!-- Dynamically loaded subcategories -->
+        </tbody>
+      </table>
+    </section>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div>
+        {% for category, message in messages %}
+          <div role="alert">
+            <strong>{{ message }}</strong>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% endwith %}
+  </div>
+
+  <script>
+    // Edit Category
+    function editCategory(categoryId, currentName) {
+      const newName = prompt("Edit Category Name:", currentName);
+      if (newName) {
+        $.post(`/categories/edit/${categoryId}`, { name: newName }, function(response) {
+            alert(response.message);
+            location.reload();
+        });
+      }
+    }
+
+    // Show Subcategories
+    function showSubcategories(categoryId) {
+      $.get(`/categories/${categoryId}/subcategories`, function(response) {
+        const subcategories = response.subcategories;
+        const subcategoryList = $("#subcategory-list");
+        subcategoryList.empty();
+
+        subcategories.forEach(subcategory => {
+          subcategoryList.append(`
+            <tr>
+              <td>${subcategory.name}</td>
+              <td>
+                <button class="btn btn-secondary" onclick="editSubcategory(${subcategory.id}, '${subcategory.name}', ${categoryId})">Edit</button>
+              </td>
+            </tr>
+          `);
+        });
+      });
+    }
+
+    // Edit Subcategory
+    function editSubcategory(subcategoryId, currentName, categoryId) {
+      const newName = prompt("Edit Subcategory Name:", currentName);
+      if (newName) {
+        $.post(`/subcategories/edit/${subcategoryId}`, { name: newName, category_id: categoryId }, function(response) {
+          alert(response.message);
+          showSubcategories(categoryId); // Reload the subcategories
+        });
+      }
+    }
+
+    // Delete Subcategory
+    function deleteSubcategory(subcategoryId) {
+      if (confirm("Are you sure you want to delete this subcategory?")) {
+        $.post(`/subcategories/delete/${subcategoryId}`, function(response) {
+          alert(response.message);
+          location.reload();
+        });
+      }
+    }
+  </script>
+</body>
+</html>

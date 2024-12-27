@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <title>Manage Customers</title>
+  <style>
+    .page-title {
+        text-align: center;
+        font-size: 28px;
+        margin-bottom: 30px;
+        color: #333;
+    }
+
+    .row {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .form-box {
+        flex: 1;
+        padding: 20px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        min-width: 300px;
+    }
+
+    .form-box h2 {
+        font-size: 22px;
+        margin-bottom: 15px;
+        color: #007bff;
+    }
+
+    form .form-group {
+        margin-bottom: 15px;
+    }
+
+    form label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    form input {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    form button {
+        display: inline-block;
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    form button:hover {
+        background-color: #0056b3;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 10px;
+        text-decoration: none;
+        color: #007bff;
+    }
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+
+    .error {
+        color: red;
+        margin-top: 10px;
+    }
+
+    .customer-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .customer-list li {
+        margin-bottom: 10px;
+    }
+
+    .customer-list a {
+        text-decoration: none;
+        color: #007bff;
+        font-weight: bold;
+    }
+
+    .customer-list a:hover {
+        text-decoration: underline;
+    }
+
+    .alert {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 15px;
+    }
+
+    @media screen and (max-width: 768px) {
+        .row {
+            flex-direction: column;
+        }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <div class="navigation">
+    <a href="{{ url_for('dashboard') }}">Home</a>
+    <a href="{{ url_for('manage_customers') }}">Manage Customers</a>
+    <a href="{{ url_for('manage_expenses') }}">Internal Expenses</a>
+    <a href="{{ url_for('manage_categories') }}">Manage Categories</a>
+  </div>
+
+  <div class="container">
+    <!-- Page Title -->
+    <h1 class="page-title">Manage Customers</h1>
+
+    <!-- Side-by-Side Sections -->
+    <div class="row">
+      <!-- Add Customer Form -->
+      <div class="form-box">
+        <h2>Add New Customer</h2>
+        <form method="POST">
+          <div class="form-group">
+            <label for="full_name">Full Name</label>
+            <input type="text" id="full_name" name="full_name" title="Please enter customer name." required>
+          </div>
+          <div class="form-group">
+            <label for="mobile_no">Mobile No</label>
+            <input type="text" id="mobile_no" name="mobile_no" pattern="\d{10}" title="Please enter a 10-digit mobile number."  required>
+          </div>
+          <div class="form-group">
+            <label for="occupation">Occupation</label>
+            <input type="text" id="occupation" name="occupation">
+          </div>
+          <div class="form-group">
+            <label for="email_id">Email Id</label>
+            <input type="email" id="email_id" name="email_id">
+          </div>
+          <h3>Address</h3>
+          <div class="form-group">
+            <label for="street">Street</label>
+            <input type="text" id="street" name="street" required>
+          </div>
+          <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" required>
+          </div>
+          <div class="form-group">
+            <label for="state">State</label>
+            <input type="text" id="state" name="state" required>
+          </div>
+          <div class="form-group">
+            <label for="pincode">Pincode</label>
+            <input type="text" id="pincode" name="pincode" required>
+          </div>
+          <button type="submit">Add Customer</button>
+        </form>
+        {% if error_message %}
+          <div class="error">{{ error_message }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Customer List -->
+      <div class="form-box">
+        <h2>Customer List</h2>
+        <ul class="customer-list">
+          {% for customer in customers %}
+            <li>
+              <a href="{{ url_for('customer_work_details', id=customer.id) }}">
+                {{ customer.full_name }} - {{ customer.mobile_no }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="alert">
+            {% for category, message in messages %}
+              {{ message }}
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+

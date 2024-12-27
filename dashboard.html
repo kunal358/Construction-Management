@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}AB Constructions{% endblock %}
+{% block content %}
+  <div class="container">
+  <!-- Header -->
+  <header>
+    <h1 class="dashboard-title">AB Constructions</h1>
+  </header>
+
+  <!-- Summary Section -->
+  <section class="summary">
+    <h2>Overall Cash Flow[Customers]</h2>
+    <div class="summary-details">
+      <table class="table-container">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Inflow Amount</th>
+            <th>Outflow Amount</th>
+            <th>Remaining</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td> <p><strong>Cash</strong></p></td>
+            <td> <p>₹ {{ total_inflow_cash }}</p></td>
+            <td> <p>₹ {{ total_outflow_cash }}</p></td>
+            <td> <p><strong>₹ {{ total_inflow_cash - total_outflow_cash }}</strong></p></td>
+          </tr>
+            <td> <p><strong>Bank</strong></p></td>
+            <td> <p>₹ {{ total_inflow_bank }}</p></td>
+            <td> <p>₹ {{ total_outflow_bank }}</p></td>
+            <td> <p><strong>₹ {{ total_inflow_bank - total_outflow_bank }}</strong></p></td>
+          </tr>
+          </tr>
+            <td> <p><strong>Total</strong></p></td>
+            <td> <p><strong>₹ {{ total_inflow }}</strong></p></td>
+            <td> <p><strong>₹ {{ total_outflow }}</strong></p></td>
+            <td> <p><strong>₹ {{ total_inflow - total_outflow }}</strong></p></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Summary Section -->
+  <section class="summary">
+    <h2>Overall Cash Flow[Internal]</h2>
+    <div class="summary-details">
+      <table class="table-container">
+        <thead>
+          <tr>
+            <th>Outflow[Cash]</th>
+            <th>Outflow[Bank]</th>
+            <th>Total Outflow</th>
+            <th>Total Cash Withdrawl</th>
+            <th>Total Cash Deposit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td> <p>₹ {{ total_internal_exp_cash }}</p></td>
+            <td> <p>₹ {{ total_internal_exp_bank }}</p></td>
+            <td> <p><strong>₹ {{ total_internal_exp }}</strong></p></td>
+            <td> <p>₹ {{ total_withdraw_cash }}</p></td>
+            <td> <p>₹ {{ total_deposit_cash }}</p></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Summary Section -->
+  <section class="summary">
+    <h2>Available Funds</h2>
+    <div class="summary-details">
+      <table class="table-container">
+        <thead>
+          <tr>
+            <th>Cash In Hand</th>
+            <th>Cash In Bank</th>
+            <th>Overall Profit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td> <p><strong>₹ {{ cash_in_hand }}</strong></p></td>
+            <td> <p><strong>₹ {{ bank_balance }}</strong></p></td>
+            <td> <p><strong>₹ {{ profit }}</strong></p></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Customer Search -->
+  <section class="customer-search">
+    <h2>Search Customer</h2>
+    <form method="GET" action="{{ url_for('dashboard') }}" class="search-box">
+      <input type="text" name="search" placeholder="Enter customer name" value="{{ search_query }}">
+      <button type="submit">Search</button>
+    </form>
+  </section>
+
+  <!-- Search Results -->
+  <section class="search-results">
+    {% if search_results %}
+    <h2>Search Results</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Mobile</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for customer in search_results %}
+        <tr>
+          <td>{{ customer.full_name }}</td>
+          <td>{{ customer.mobile_no }}</td>
+          <td>
+              <a href="{{ url_for('customer_work_details', id=customer.id) }}" class="btn btn-primary">View Work Details</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </section>
+  </div>
+{% endblock %}
+

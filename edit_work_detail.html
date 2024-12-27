@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Edit Work Detail</title>
+  <style>
+    .form-group {
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+    }
+    .form-group input[type="text"], .form-group input[type="date"], .form-group select {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    button {
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="navigation">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Home</a>
+    <a href="{{ url_for('manage_customers') }}" class="btn btn-secondary">Manage Customers</a>
+    <a href="{{ url_for('manage_expenses') }}" class="btn btn-secondary">Internal Expenses</a>
+    <a href="{{ url_for('manage_categories') }}" class="btn btn-secondary">Manage Categories</a>
+  </div>
+
+  <div class="container">
+    <h1>Edit Work Detail</h1>
+    <form method="POST">
+      <div class="form-group">
+        <label for="date">Date</label>
+        <input type="date" name="date" value="{{ work.date.strftime('%Y-%m-%d') }}" required pattern="\d{4}-\d{2}-\d{2}">
+      </div>
+
+      <div class="form-group">
+        <label for="category">Category:</label>
+        <select name="category_id" id="category" required>
+            {% for category in categories %}
+                <option value="{{ category.id }}" {% if work.category_id == category.id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+            {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="subcategory">Subcategory:</label>
+        <select name="subcategory_id" id="subcategory" data-selected="{{ work.subcategory_id or '' }}" required>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="amount">Amount:</label>
+        <input type="text" id="amount" name="amount" value="{{ work.amount }}" required pattern="\d+(\.\d{1,2})?">
+      </div>
+
+      <div class="form-group">
+        <label for="method">Method</label>
+        <select name="method" id="method" data-selected="{{ work.method }}" required>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <input type="text" name="description" id="description" value="{{ work.description }}">
+      </div>
+
+      <div class="form-group">
+        <button type="submit">Update Record</button>
+      </div>
+    </form>
+    <a href="javascript:history.back();">Go Back</a>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div>
+          {% for category, message in messages %}
+            <div role="alert">
+              <strong>{{ message }}</strong>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const categorySelect = document.getElementById('category');
+        const subcategorySelect = document.getElementById('subcategory');
+        const methodSelect = document.getElementById('method');
+    
+        function populateSubcategoriesAndMethods(categoryId) {
+            console.log('CatId: ', categoryId);
+            if (categoryId) {
+                methodSelect.innerHTML = '<option value="" disabled selected>Select Method</option>';
+                subcategorySelect.innerHTML = '<option value="" disabled selected>Select Subcategory</option>';
+    
+                Promise.all([
+                    fetch('/is_category_inflow/' + categoryId),
+                    fetch(`/get_subcat_work_detail/${categoryId}`)
+                ])
+                .then(responses => Promise.all(responses.map(res => res.json())))
+                .then(([methodData, subcatData]) => {
+                    // Populate Method
+                    methodData.method_options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.value;
+                        optionElement.text = option.label;
+                        if (typeof work !== 'undefined' && option.value === work.method.toString()) {
+                            optionElement.selected = true;
+                        }
+                        // Check if this option matches the preselected method
+                        if (methodSelect.dataset.selected === option.value.toString()) {
+                            optionElement.selected = true;
+                        }
+                        methodSelect.appendChild(optionElement);
+                    });
+    
+                    // Populate Subcategories
+                    subcatData.forEach(subcategory => {
+                        console.log('Fetched Subcategories:', subcatData);
+                        const optionElement = document.createElement('option');
+                        optionElement.value = subcategory.id;
+                        optionElement.textContent = subcategory.name;
+                        if (typeof work !== 'undefined' && subcategory.id.toString() === work.subcategory_id.toString()) {
+                            optionElement.selected = true;
+                        }
+                        // Check if this option matches the preselected subcategory
+                        if (subcategorySelect.dataset.selected === subcategory.id.toString()) {
+                            optionElement.selected = true;
+                        }
+                        subcategorySelect.appendChild(optionElement);
+                    });
+                })
+                .catch(error => console.error('Error fetching data:', error));
+            }
+        }
+    
+        populateSubcategoriesAndMethods(categorySelect.value);
+    
+        // Populate fields on category change
+        categorySelect.addEventListener('change', function () {
+            populateSubcategoriesAndMethods(this.value);
+        });
+    });
+  </script>
+</body>
+</html>
+

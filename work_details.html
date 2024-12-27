@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <title>Work Details</title>
+
+  <style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    table th {
+        position: sticky;
+        top: 0;
+        background: white; /* Ensure the header has a background color */
+        z-index: 2;
+    }
+    th, td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: center;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    /* Styling for the table */
+    .table-summary {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        max-height: 200px; /* Adjust height as needed */
+        overflow-y: auto;
+        display: block;
+    }
+    
+    /* Table header styling */
+    .table-summary thead th {
+        background-color: #f4f4f4;
+        border-bottom: 1px solid #ddd;
+        border-top: 1px solid #ddd;
+    }
+    
+    .table-summary thead th,.table-summary tbody td {
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+        vertical-align: middle;
+    }
+
+    /* Styling for the table */
+    .table-record {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        max-height: 200px; /* Adjust height as needed */
+        overflow-y: auto;
+        display: block;
+    }
+    
+    /* Table header styling */
+    .table-record thead th {
+        background-color: #f4f4f4;
+        border-bottom: 1px solid #ddd;
+        border-top: 1px solid #ddd;
+    }
+    
+    .table-record thead th,.table-record tbody td {
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+        vertical-align: middle;
+    }
+    .table-record tbody td:last-child {
+        text-align: center;
+        width: 10%; /* Fixed width */
+    }
+
+    .form-group {
+        display: inline-block;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: bold;
+        color: #555;
+    }
+    .form-group input[type="text"], .form-group input[type="date"], .form-group select, {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    /* Add more specific selectors if needed */
+    #category, #date, #subcategory, #description, #amount {
+      font-size: 14px;
+    }
+
+    button {
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    /* Flexbox layout for the summary and records */
+    .form-container-row {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        gap: 20px; /* Adjust spacing between the boxes */
+        box-sizing: border-box;
+    }
+
+    /* Make both boxes take up equal width */
+    .form-box {
+        flex: 1;
+        max-width: 48%; /* Adjust width as necessary */
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #ffffff;
+        overflow-x: auto; /* Ensure horizontal scrolling for wide tables */
+    }
+
+    .summary-box {
+        flex: 0 0 25%; /* Fixed 25% width */
+        max-width: 25%;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-sizing: border-box;
+    }
+
+    .record-box {
+        flex: 0 0 75%; /* Fixed 75% width */
+        max-width: 75%;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #ffffff;
+        box-sizing: border-box;
+    }
+    .summary {
+        max-width: 100%;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-sizing: border-box;
+    }
+
+    .money-box {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-sizing: border-box;
+    }
+
+    .upload-box {
+        flex: 0 0 50%; /* Fixed 75% width */
+        max-width: 50%;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #ffffff;
+        box-sizing: border-box;
+    }
+
+    /* Styling for the table */
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        text-align: left;
+        max-height: 200px; /* Adjust height as needed */
+        overflow-y: auto;
+        display: block;
+    }
+    
+    /* Table header styling */
+    .styled-table thead th {
+        background-color: #f4f4f4;
+        border-bottom: 1px solid #ddd;
+        border-top: 1px solid #ddd;
+    }
+    
+    .styled-table thead th,.styled-table tbody td {
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+        vertical-align: middle;
+    }
+    
+    /* Handle long file names */
+    .styled-table tbody td:first-child {
+        white-space: nowrap; /* Prevent breaking */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 0; /* Enables shrinking */
+        width:50%;
+    }
+    
+    /* For uploaded at column */
+    .styled-table tbody td:nth-child(2) {
+        text-align: left;
+        width:40%;
+    }
+    
+    /* For actions column */
+    .styled-table tbody td:last-child {
+        text-align: center;
+        width: 10%; /* Fixed width */
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="navigation">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Home</a>
+    <a href="{{ url_for('manage_customers') }}" class="btn btn-secondary">Manage Customers</a>
+    <a href="{{ url_for('manage_expenses') }}" class="btn btn-secondary">Internal Expenses</a>
+    <a href="{{ url_for('manage_categories') }}" class="btn btn-secondary">Manage Categories</a>
+  </div>
+
+  <div class="container">
+    <p><strong>Customer Info</strong></p>
+    <input type="hidden" id="customer_id" value="{{ customer.id }}">
+    <p><strong>Full Name:</strong> {{ customer.full_name }}, <strong>Mobile:</strong> {{ customer.mobile_no }}, <strong>Email Id:</strong> {{ customer.email_id }}</p>
+    <p><strong>Address:</strong> {{ customer.address }}</p>
+
+    <section class="form-container-row">
+      <div class="summary-box">
+        <h3>Summary [Category Wise]</h3>
+        <table class="table-summary">
+          <thead>
+            <tr>
+              <th style="width: 100px;">Category</th>
+              <th>Total Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for category in category_summary %}
+            <tr>
+              <td>
+                <a href="{{ url_for('customer_work_details', id=customer.id, category_id=category.id) }}">
+                    {{ category.name }}
+                </a>
+              </td>
+              <td>₹{{ category[2] or 0 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="record-box">
+        <h2>Work Records</h2>
+        <table class="table-record">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Subcategory</th>
+              <th>Amount</th>
+              <th>Method</th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for record in work_records %}
+            <tr>
+              <td>{{ record.date }}</td>
+              <td>{{ record.category }}</td>
+              <td>{{ record.subcategory }}</td>
+              <td>₹ {{ record.amount }}</td>
+              <td>{{ record.method or 'N/A' }}</td>
+              <td>{{ record.description or 'N/A' }}</td>
+              <td>
+                <a href="{{ url_for('edit_work_detail', customer_id=customer.id, work_id=record.id) }}" class="btn btn-primary btn-sm"><strong>Edit</strong></a>
+                <form action="{{ url_for('delete_work_detail', customer_id=customer.id, work_id=record.id) }}" method="POST" style="display:inline;">
+                  <button type="submit" class="btn btn-primary btn-sm" onclick="confirmDelete(this)">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <h2>Add Work Details</h2>
+      <div class="summary">
+      <form method="POST" action="{{ url_for('customer_work_details', id=customer.id) }}">
+        <div class="form-group">
+          <label for="date">Date:</label>
+          <input type="date" name="date" id="date" required pattern="\d{4}-\d{2}-\d{2}">
+        </div>
+
+        <div class="form-group">
+          <label for="category">Category:</label>
+          <select name="category_id" id="category" required>
+            <option value="" disabled selected>Select Category</option>
+            {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="subcategory">Subcategory:</label>
+          <select name="subcategory_id" id="subcategory" required>
+            <option value="" disabled selected>Select Subcategory</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="amount">Amount:</label>
+          <input type="text" id="amount" name="amount" required pattern="\d+(\.\d{1,2})?" placeholder="Amount">
+        </div>
+
+        <div class="form-group">
+          <label for="amount">Method:</label>
+          <select name="method" id="method" required>
+            <option value="" disabled selected>Select Method</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="description">Description:</label>
+          <input type="text" name="description" id="description" placeholder="Description (Optional)">
+        </div>
+
+        <div class="form-group">
+          <button type="submit">Add Work Detail</button>
+        </div>
+      </form>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div>
+          {% for category, message in messages %}
+            <div role="alert">
+              <strong>{{ message }}</strong>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% endwith %}
+      </div>
+    </section>
+
+    <section class="form-container-row">
+      <div class="money-box">
+      <h2>Money Summary</h2>
+      <table class="table-container">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Inflow Amount</th>
+            <th>Outflow Amount</th>
+            <th>Remaining</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td> <p><strong>Cash</strong></p></td>
+            <td> <p>₹ {{ inflow_cash }}</p></td>
+            <td> <p>₹ {{ outflow_cash }}</p></td>
+            <td> <p><strong>₹ {{ inflow_cash - outflow_cash }}</strong></p></td>
+          </tr>
+            <td> <p><strong>Bank</strong></p></td>
+            <td> <p>₹ {{ inflow_bank }}</p></td>
+            <td> <p>₹ {{ outflow_bank }}</p></td>
+            <td> <p><strong>₹ {{ inflow_bank - outflow_bank }}</strong></p></td>
+          </tr>
+          </tr>
+            <td> <p><strong>Total</strong></p></td>
+            <td> <p><strong>₹ {{ inflow_total }}</strong></p></td>
+            <td> <p><strong>₹ {{ outflow_total }}</strong></p></td>
+            <td> <p><strong>₹ {{ inflow_total - outflow_total }}</strong></p></td>
+          </tr>
+        </tbody>
+      </table>
+      <h3><p><strong>Overall Profit:</strong>₹ {{ profit }}</p></h3>
+      <a href="{{ url_for('export_work_details', customer_id=customer.id) }}" class="button">Export to PDF</a>
+      </div>
+
+      <div class="upload-box">
+      <h2>Upload Files</h2>
+      <form id="uploadCustomerFileForm" enctype="multipart/form-data">
+          <input type="hidden" name="customer_id" value="{{ customer.id }}">
+          <input id="fileInput" type="file" name="file" multiple accept=".pdf,.jpg,.jpeg,.png">
+          <button type="button" id="uploadCustomerFileButton" class="btn btn-primary">Upload File</button>
+      </form>
+      <div id="uploadMessage" style="margin-top: 10px;"></div>
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>File Name</th>
+                    <th>Uploaded At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="fileTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function confirmDelete(button) {
+      // Prevent immediate form submission when the button is clicked
+      event.preventDefault();
+      if (confirm("Are you sure you want to delete?")) {
+        // Submit the form
+        button.closest('form').submit();
+      }
+      else {
+        // Prevent form submission if "Cancel" is clicked
+        return false;
+      }
+    }
+    document.getElementById('category').addEventListener('change', function() {
+      const categoryId = this.value;
+      const subcategorySelect = document.getElementById('subcategory');
+      const methodSelect = document.getElementById('method');
+
+      methodSelect.innerHTML = '<option value="" disabled selected>Select Method</option>';
+      fetch('/is_category_inflow/' + categoryId)
+        .then(response => response.json())
+        .then(data => {
+          // Show method selection element and populate options
+          data.method_options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.value;
+            optionElement.text = option.label;
+            methodSelect.appendChild(optionElement);
+          });
+        });
+
+      // Clear current subcategories
+      subcategorySelect.innerHTML = '<option value="" disabled selected>Select Subcategory</option>';
+
+      if (categoryId) {
+        fetch(`/get_subcat_work_detail/${categoryId}`)
+          .then(response => response.json())
+          .then(data => {
+            data.forEach(subcategory => {
+              const option = document.createElement('option');
+              option.value = subcategory.id;
+              option.textContent = subcategory.name;
+              subcategorySelect.appendChild(option);
+            });
+          })
+          .catch(error => console.error('Error fetching subcategories:', error));
+      }
+    });
+
+    document.getElementById('uploadCustomerFileButton').addEventListener('click', function () {
+        const form = document.getElementById('uploadCustomerFileForm');
+        const formData = new FormData(form);
+        const messageDiv = document.getElementById('uploadMessage');
+        messageDiv.innerHTML = ''; // Clear previous messages
+    
+        fetch('/upload_customer_file', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Invalid response from server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            let customerId = document.getElementById("customer_id").value;
+            messageDiv.style.color = 'green';
+            messageDiv.innerHTML = `<strong>${data.success}</strong>`;
+            fetchFiles(customerId);
+        })
+        .catch(error => {
+            messageDiv.style.color = 'red';
+            messageDiv.innerHTML = `<strong>${error.message}</strong>`;
+        });
+    });
+
+    function uploadFiles() {
+      let formData = new FormData(document.getElementById("uploadForm"));
+      fetch('/upload_customer_file', {
+          method: 'POST',
+          body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.error) {
+              document.getElementById("message").innerHTML = `<span style="color: red;">${data.error}</span>`;
+          } else {
+              document.getElementById("message").innerHTML = `<span style="color: green;">${data.success}</span>`;
+              document.getElementById('fileInput').value = '';
+              fetchFiles(); // Refresh table
+          }
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    function fetchFiles() {
+      let customerId = document.getElementById("customer_id").value;
+      fetch(`/get_customer_files/${customerId}`)
+        .then(response => response.json())
+        .then(data => {
+            let tableBody = document.getElementById("fileTableBody");
+            tableBody.innerHTML = ""; // Clear current table rows
+            data.files.forEach(file => {
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${file.name}</td>
+                        <td>${file.uploaded_at}</td>
+                        <td><a href="/static/uploaded_files/customer_${customerId}/${file.name}" target="_blank">View</a></td>
+                    </tr>`;
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      fetchFiles();
+    });
+  </script>
+</body>
+</html>
