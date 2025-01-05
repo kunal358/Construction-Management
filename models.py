@@ -46,6 +46,10 @@ class Customer(db.Model):
   email_id = db.Column(db.String(50))
   address = db.Column(db.Text)
   files = db.relationship('CustomerFile', back_populates='customer', cascade='all, delete-orphan')
+  construction_size = db.Column(db.Float, nullable=True, default=0.0)
+  rate_of_construction = db.Column(db.Float, nullable=True, default=0.0)
+  wall_compound_size = db.Column(db.Float, nullable=True, default=0.0)
+  rate_of_wall_compound = db.Column(db.Float, nullable=True, default=0.0)
 
 class WorkDetail(db.Model):
   id = db.Column(db.Integer, primary_key=True)
