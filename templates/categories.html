@@ -305,6 +305,9 @@
               <td>${subcategory.name}</td>
               <td>
                 <button class="btn btn-secondary" onclick="editSubcategory(${subcategory.id}, '${subcategory.name}', ${categoryId})">Edit</button>
+                <a href="/categories/${subcategory.id}/export_pdf" class="btn btn-primary btn-sm">
+                    Export to PDF
+                </a>
               </td>
             </tr>
           `);

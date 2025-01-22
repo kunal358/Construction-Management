@@ -224,6 +224,18 @@
         width: 10%; /* Fixed width */
     }
 
+    .customer-details-container {
+        display: flex;
+        justify-content: space-between; 
+    }
+
+    .customer-info-left {
+        flex: 1;
+    }
+    .customer-info-right {
+        flex: 1;
+    }
+
   </style>
 </head>
 
@@ -236,10 +248,69 @@
   </div>
 
   <div class="container">
-    <p><strong>Customer Info</strong></p>
-    <input type="hidden" id="customer_id" value="{{ customer.id }}">
-    <p><strong>Full Name:</strong> {{ customer.full_name }}, <strong>Mobile:</strong> {{ customer.mobile_no }}, <strong>Email Id:</strong> {{ customer.email_id }}</p>
-    <p><strong>Address:</strong> {{ customer.address }}</p>
+    <div class="customer-details-container">
+      <div class="customer-info-left">
+        <p><strong>Customer Info</strong></p>
+        <input type="hidden" id="customer_id" value="{{ customer.id }}">
+        <p><strong>Full Name:</strong> {{ customer.full_name }}, <strong>Mobile:</strong> {{ customer.mobile_no }}, <strong>Email Id:</strong> {{ customer.email_id }}</p>
+        <p><strong>Address:</strong> {{ customer.address }}</p>
+      </div>
+      <div class="customer-info-right">
+        <form method="POST" action="{{ url_for('customer_update', id=customer.id) }}">
+        <table class="table-summary">
+          <tbody>
+            <tr>
+              <td>
+                <label for="home_construction_area">Construction Area (In Sq ft):</label>
+              </td>
+              <td>
+                <input type="text" id="home_construction_area" name="home_construction_area" required pattern="\d+(\.\d{1,2})?" placeholder="Construction Size" value="{{ customer.construction_size if customer.construction_size else '0' }}" maxlength="10" style="width: 10em;">
+              </td>
+              <td>
+                <label for="home_construction_rate">Rate of Construction:</label>
+              </td>
+              <td>
+                <input type="text" id="home_construction_rate" name="home_construction_rate" required pattern="\d+(\.\d{1,2})?" placeholder="Construction Rate" value="{{ customer.rate_of_construction if customer.rate_of_construction else '0'}}" maxlength="10" style="width: 10em;">
+               </td>
+              <td>
+                <strong> <label for="total_construction_cost"> {{ (customer.construction_size or 0) * (customer.rate_of_construction or 0) }} /-</label></strong>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="wall_compound_area">Wall Compound Area (In Sq Ft):</label>
+              </td>
+              <td>
+                <input type="text" id="wall_compound_area" name="wall_compound_area" required pattern="\d+(\.\d{1,2})?" placeholder="Wall Compound Area" value="{{ customer.wall_compound_size if customer.wall_compound_size else '0' }}" maxlength="10" style="width: 10em;">
+              </td>
+              <td>
+                <label for="wall_compound_rate">Rate of Wall Compound:</label>
+              </td>
+              <td>
+                <input type="text" id="wall_compound_rate" name="wall_compound_rate" required pattern="\d+(\.\d{1,2})?" placeholder="Wall Compound Rate" value="{{ customer.rate_of_wall_compound if customer.rate_of_wall_compound else '0' }}" maxlength="10" style="width: 10em;">
+              </td>
+              <td>
+                <strong> <label for="total_wall_compound_cost"> {{ (customer.wall_compound_size or 0) * (customer.rate_of_wall_compound or 0) }} /-</label></strong>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="4" style="text-align: right;">
+              <p><strong>Total Cost</strong></p>
+              </td>
+              <td>
+              <strong>{{ ((customer.wall_compound_size or 0) * (customer.rate_of_wall_compound or 0)) + ((customer.construction_size or 0) * (customer.rate_of_construction or 0)) }}</strong>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="5" style="font-size: 0.5em;text-align: center;">
+              <button type="submit">Update Details</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        </form>
+      </div>
+    </div>
 
     <section class="form-section">
       <h2>Add Work Details</h2>
@@ -265,13 +336,16 @@
             <option value="" disabled selected>Select Subcategory</option>
           </select>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="position: relative; display: inline-block;">
           <label for="amount">Amount:</label>
           <input type="text" id="amount" name="amount" required pattern="\d+(\.\d{1,2})?" placeholder="Amount">
+          <span id="tooltip" style="visibility: hidden; position: absolute; top: 120%; left: 0; background-color: #f8f9fa; color: #333; 
+              padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; white-space: nowrap; z-index: 1;">
+              Amount in words
+          </span>
         </div>
-
         <div class="form-group">
-          <label for="amount">Method:</label>
+          <label for="method">Method:</label>
           <select name="method" id="method" required>
             <option value="" disabled selected>Select Method</option>
           </select>
@@ -540,6 +614,57 @@
 
     document.addEventListener('DOMContentLoaded', function () {
       fetchFiles();
+    });
+
+
+    function numberToWordsIndian(num) {
+        const belowTwenty = [
+            "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", 
+            "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"
+        ];
+        const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+        const units = ["", "Thousand", "Lakh", "Crore"];
+    
+        function convertToWords(n) {
+            if (n < 20) return belowTwenty[n];
+            else if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + belowTwenty[n % 10] : "");
+            else return belowTwenty[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " " + convertToWords(n % 100) : "");
+        }
+    
+        let word = "";
+        let unitIndex = 0;
+    
+        // Split number into groups based on Indian numbering system
+        const parts = [];
+        parts.push(num % 1000); // First 3 digits
+        num = Math.floor(num / 1000);
+    
+        while (num > 0) {
+            parts.push(num % 100); // Next 2 digits
+            num = Math.floor(num / 100);
+        }
+    
+        for (let i = 0; i < parts.length; i++) {
+            if (parts[i] !== 0) {
+                word = convertToWords(parts[i]) + " " + units[i] + (word ? " " + word : "");
+            }
+        }
+    
+        return word.trim();
+    }
+    
+    const amountInput = document.getElementById("amount");
+    const tooltip = document.getElementById("tooltip");
+    
+    amountInput.addEventListener("input", function () {
+        const amount = this.value.replace(/,/g, ""); // Remove commas if any
+    
+        if (!isNaN(amount) && Number(amount) >= 100) {
+            tooltip.textContent = numberToWordsIndian(Math.floor(Number(amount)));
+            tooltip.style.visibility = "visible";
+        } else {
+            tooltip.style.visibility = "hidden";
+        }
     });
   </script>
 </body>

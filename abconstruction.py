@@ -397,6 +397,23 @@ def customer_work_details(id):
       selected_category_id=selected_category_id
   )
 
+@app.route('/customer/<int:id>/update', methods=['POST'])
+def customer_update(id):
+    try:
+        customer = Customer.query.get_or_404(id)
+        data = request.form
+        customer.construction_size = data.get('home_construction_area', customer.construction_size)
+        customer.rate_of_construction = data.get('home_construction_rate', customer.rate_of_construction)
+        customer.wall_compound_size = data.get('wall_compound_area', customer.wall_compound_size)
+        customer.rate_of_wall_compound = data.get('wall_compound_rate', customer.rate_of_wall_compound)
+        db.session.commit()
+        flash("Customer details updated successfully!", "success")
+    except Exception as e:
+        flash(f"Error updating customer details: {e}", "danger")
+
+    return redirect(url_for('customer_work_details', id=id))
+  
+
 @app.route('/is_category_inflow/<int:category_id>')
 def is_category_inflow(category_id):
   category = Category.query.filter_by(id=category_id).first()  # Fetch single category
@@ -506,6 +523,8 @@ def get_expense_method(expense_category):
 
 @app.route('/company_expenses', methods=['GET', 'POST'])
 def manage_expenses():
+    customers = Customer.query.all()
+    categories = Category.query.all()
     if request.method == 'POST':
         date = request.form.get('date')
         category = request.form.get('category')
@@ -528,7 +547,7 @@ def manage_expenses():
                      .scalar() or 0
                     )
 
-    return render_template('company_expenses.html', expenses=expenses, summary=summary, total_outflow=total_outflow)
+    return render_template('company_expenses.html', expenses=expenses, summary=summary, total_outflow=total_outflow, customers=customers, categories=categories)
 
 @app.route('/delete_expense/<int:expense_id>', methods=['POST'])
 def delete_expense(expense_id):
@@ -808,6 +827,104 @@ def clean_customer_files(customer_id):
     # Delete untracked files
     for file in untracked_files:
         os.remove(os.path.join(customer_dir, file))
+
+@app.route('/categories/<int:subcategory_id>/export_pdf', methods=['GET'])
+def export_subcategory_pdf(subcategory_id):
+    # Fetch records for the sub-category, sorted by descending date
+    work_details = (db.session.query(WorkDetail)
+      .filter(WorkDetail.subcategory_id == subcategory_id)
+      .order_by(WorkDetail.date.desc())
+      .all()
+    )
+
+    subCat = (db.session.query(Subcategory)
+      .filter(Subcategory.id == subcategory_id)
+      .first()
+    )
+
+    # Generate the IST timestamp
+    ist_offset = timedelta(hours=5, minutes=30)
+    ist_now = datetime.now(timezone.utc) + ist_offset
+    report_generated_at = ist_now.strftime("%d-%m-%Y %H:%M:%S")  # Format: DD-MM-YYYY HH:MM:SS
+
+    # Create a PDF
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    # Title
+    pdf.set_font("Arial", style="B", size=16)
+    pdf.cell(0, 10, f"AB Construction Report", 0, 1, 'C')
+    pdf.cell(200, 10, f"Records for {subCat.name}", ln=True, align="C")
+    pdf.ln(10)
+
+    # Add table headers
+    pdf.set_font("Arial", style="B", size=12)
+    pdf.cell(40, 10, "Customer Name", border=1, align="C")
+    pdf.cell(30, 10, "Date", border=1, align="C")
+    pdf.cell(30, 10, "Amount", border=1, align="C")
+    pdf.cell(30, 10, "Method", border=1, align="C")
+    pdf.cell(50, 10, "Description", border=1, align="C")
+    pdf.ln()
+
+    # Add table rows
+    pdf.set_font("Arial", size=12)
+    for record in work_details:
+        cust = (db.session.query(Customer)
+          .filter(Customer.id == record.customer_id)
+          .first()
+        )
+        pdf.cell(40, 10, cust.full_name, border=1)
+        pdf.cell(30, 10, record.date.strftime('%d-%m-%Y'), border=1)
+        pdf.cell(30, 10, f"{record.amount:.2f}", border=1)
+        pdf.cell(30, 10, record.method or "N/A", border=1)
+        pdf.cell(50, 10, record.description or "N/A", border=1)
+        pdf.ln()
+
+    # Footer
+    pdf.ln(10)
+    pdf.set_font("Arial", size=10)
+    pdf.cell(200, 10, txt=f"Report generated at: {report_generated_at}", ln=True, align='R')
+    pdf.ln(10)
+
+    # Output PDF content and ensure it is bytes
+    pdf_data = bytes(pdf.output(dest='S'))  # Convert bytearray to bytes
+    response = Response(pdf_data, mimetype='application/pdf')
+    response.headers['Content-Disposition'] = f'attachment;filename=Report_{subCat.name}.pdf'
+    return response
+
+@app.route('/company_expense_work_details', methods=['GET', 'POST'])
+def company_expense_work_details():
+
+    try:
+      if request.method == 'POST':
+        custid = request.form.get('cust_id')
+        date = request.form.get('cust_date')
+        category = request.form.get('cust_category_id')
+        subcat = request.form.get('cust_subcategory_id')
+        description = request.form.get('cust_description')
+        amount = float(request.form.get('cust_amount'))
+        method = request.form.get('cust_method')
+
+        new_work = WorkDetail(
+          customer_id=custid,
+          date=datetime.strptime(date, '%Y-%m-%d'),
+          category_id=category,
+          subcategory_id=subcat,
+          amount=float(amount),
+          method=method,
+          description=description,
+        )
+        db.session.add(new_work)
+        db.session.commit()
+
+        flash('Customer record added successfully!', 'success')
+        return redirect(url_for('manage_expenses'))
+    except Exception as e:
+        print(f"Error while adding customer record: {e}")
+        flash('An error occurred while adding customer record.', 'danger')
+    return redirect(url_for('manage_expenses'))
 
 if __name__ == '__main__':
     setup_database()

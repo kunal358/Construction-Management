@@ -20,6 +20,7 @@
         padding: 8px;
         border: 1px solid #ccc;
         border-radius: 4px;
+        font-size: 16px;
     }
     
     button {
@@ -186,31 +187,98 @@
     <section class="form-section">
         <h2>Add Expense</h2>
         <form action="/company_expenses" method="POST" class="form-row">
+          <div class="form-group">
             <input type="date" name="date" id="date" required pattern="\d{4}-\d{2}-\d{2}">
+          </div>
+          <div class="form-group">
             <select name="category" id="category" required>
               <option value="" disabled selected>Select Category</option>
             </select>
+          </div>
+          <div class="form-group">
             <select name="method" id="method" required>
               <option value="" disabled selected>Select Method</option>
             </select>
+          </div>
+          <div class="form-group">
             <input type="text" name="description" placeholder="Description (Optional)">
-            <input type="text" name="amount" id="amount" placeholder="Amount" required pattern="\d+(\.\d{1,2})?">
+          </div>
+          <div class="form-group" style="position: relative; display: inline-block;">
+            <input type="text" name="amount" id="exp_amount" placeholder="Amount" required pattern="\d+(\.\d{1,2})?">
+            <span id="exp_tooltip" style="visibility: hidden; position: absolute; top: 120%; left: 0; background-color: #f8f9fa; color: #333; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; white-space: nowrap; z-index: 1;">
+              Amount in words
+            </span>
+          </div>
+          <div class="form-group">
             <button type="submit">Add Expense</button>
+          </div>
         </form>
     </section>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div>
-        {% for category, message in messages %}
-          <div role="alert">
-            <strong>{{ message }}</strong>
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-    {% endwith %}
-  </div>
 
+    <span></span>
+    <section class="form-section">
+      <h2>Add Work Detail for Customers</h2>
+      <div class="summary">
+      <form class="form-row" method="POST" action="{{ url_for('company_expense_work_details') }}">
+        <div class="form-group">
+          <select name="cust_id" id="cust_id" required>
+            <option value="" disabled selected>Select Customer</option>
+            {% for cust in customers %}
+                <option value="{{ cust.id }}">{{ cust.full_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <input type="date" name="cust_date" id="cust_date" required pattern="\d{4}-\d{2}-\d{2}">
+        </div>
+
+        <div class="form-group">
+          <select name="cust_category_id" id="cust_category_id" required>
+            <option value="" disabled selected>Select Category</option>
+            {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <select name="cust_subcategory_id" id="cust_subcategory_id" required>
+            <option value="" disabled selected>Select Subcategory</option>
+          </select>
+        </div>
+        <div class="form-group" style="position: relative; display: inline-block;">
+          <input type="text" id="cust_amount" name="cust_amount" required pattern="\d+(\.\d{1,2})?" placeholder="Amount">
+          <span id="tooltip" style="visibility: hidden; position: absolute; top: 120%; left: 0; background-color: #f8f9fa; color: #333; 
+              padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; white-space: nowrap; z-index: 1;">
+              Amount in words
+          </span>
+        </div>
+        <div class="form-group">
+          <select name="cust_method" id="cust_method" required>
+            <option value="" disabled selected>Select Method</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <input type="text" name="cust_description" id="cust_description" placeholder="Description (Optional)">
+        </div>
+
+        <div class="form-group">
+          <button type="submit">Insert Customer Record</button>
+        </div>
+      </form>
+      </div>
+    </section>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div>
+          {% for category, message in messages %}
+            <div role="alert">
+              <strong>{{ message }}</strong>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% endwith %}
+  </div>
 <script>
     function confirmDelete(button) {
       // Prevent immediate form submission when the button is clicked
@@ -258,6 +326,108 @@
           });
         });
     });
+
+
+    document.getElementById('cust_category_id').addEventListener('change', function() { 
+      const categoryId = this.value;                                               
+      const subcategorySelect = document.getElementById('cust_subcategory_id'); 
+      const methodSelect = document.getElementById('cust_method');
+                                                                                   
+      methodSelect.innerHTML = '<option value="" disabled selected>Select Method</option>';
+      fetch('/is_category_inflow/' + categoryId)
+        .then(response => response.json())
+        .then(data => {
+          // Show method selection element and populate options
+          data.method_options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.value;
+            optionElement.text = option.label;
+            methodSelect.appendChild(optionElement);
+          });
+        });
+                                                                                   
+      // Clear current subcategories                                               
+      subcategorySelect.innerHTML = '<option value="" disabled selected>Select Subcategory</option>';
+      if (categoryId) {
+        fetch(`/get_subcat_work_detail/${categoryId}`)
+          .then(response => response.json())
+          .then(data => {
+            data.forEach(subcategory => {
+              const option = document.createElement('option');
+              option.value = subcategory.id;
+              option.textContent = subcategory.name;
+              subcategorySelect.appendChild(option);
+            });
+          })
+          .catch(error => console.error('Error fetching subcategories:', error));
+      }
+    });
+
+    function numberToWordsIndian(num) {
+        const belowTwenty = [
+            "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", 
+            "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"
+        ];
+        const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+        const units = ["", "Thousand", "Lakh", "Crore"];
+    
+        function convertToWords(n) {
+            if (n < 20) return belowTwenty[n];
+            else if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + belowTwenty[n % 10] : "");
+            else return belowTwenty[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " " + convertToWords(n % 100) : "");
+        }
+    
+        let word = "";
+        let unitIndex = 0;
+    
+        // Split number into groups based on Indian numbering system
+        const parts = [];
+        parts.push(num % 1000); // First 3 digits
+        num = Math.floor(num / 1000);
+    
+        while (num > 0) {
+            parts.push(num % 100); // Next 2 digits
+            num = Math.floor(num / 100);
+        }
+    
+        for (let i = 0; i < parts.length; i++) {
+            if (parts[i] !== 0) {
+                word = convertToWords(parts[i]) + " " + units[i] + (word ? " " + word : "");
+            }
+        }
+    
+        return word.trim();
+    }
+    
+    const amountInput = document.getElementById("cust_amount");
+    const tooltip = document.getElementById("tooltip");
+    
+    amountInput.addEventListener("input", function () {
+        const amount = this.value.replace(/,/g, ""); // Remove commas if any
+    
+        if (!isNaN(amount) && Number(amount) >= 100) {
+            tooltip.textContent = numberToWordsIndian(Math.floor(Number(amount)));
+            tooltip.style.visibility = "visible";
+        } else {
+            tooltip.style.visibility = "hidden";
+        }
+    });
+
+
+    const expAmt = document.getElementById("exp_amount");
+    const expTooltip = document.getElementById("exp_tooltip");
+    
+    expAmt.addEventListener("input", function () {
+        const amount = this.value.replace(/,/g, ""); // Remove commas if any
+    
+        if (!isNaN(amount) && Number(amount) >= 100) {
+            expTooltip.textContent = numberToWordsIndian(Math.floor(Number(amount)));
+            expTooltip.style.visibility = "visible";
+        } else {
+            expTooltip.style.visibility = "hidden";
+        }
+    });
+
 </script>
 </body>
 </html>
