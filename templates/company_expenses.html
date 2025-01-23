@@ -11,6 +11,7 @@
         display: flex;
         gap: 10px;
         margin-bottom: 20px;
+        flex-wrap: wrap; /* Allow fields to wrap onto new lines */
     }
     
     .form-row input, 
@@ -234,8 +235,8 @@
     <span></span>
     <div class="summary-work">
       <h2>Add Work Detail for Customers</h2>
-      <div class="summary1">
       <form class="form-row" method="POST" action="{{ url_for('company_expense_work_details') }}">
+        <div class="form-row">
         <div class="form-group">
           <select name="cust_id" id="cust_id" required>
             <option value="" disabled selected>Select Customer</option>
@@ -268,6 +269,8 @@
               Amount in words
           </span>
         </div>
+        </div>
+        <div class="form-row">
         <div class="form-group">
           <select name="cust_method" id="cust_method" required>
             <option value="" disabled selected>Select Method</option>
@@ -280,9 +283,10 @@
         <div class="form-group">
           <button type="submit">Insert</button>
         </div>
+        </div>
       </form>
-      </div>
     </div>
+
       {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div>
