@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Company Expenses</title>
     <style>
+
     /* General Form Styling */
     .form-row {
         display: flex;
@@ -21,10 +22,7 @@
         border-radius: 4px;
         font-size: 16px;
     }
-
-   .form-section {
-        max-width: 100%; /* Adjust as needed */
-    } 
+    
     button {
         background-color: #007bff;
         color: white;
@@ -108,18 +106,6 @@
     tr:nth-child(even) {                                                        
         background-color: #f9f9f9;                                              
     }
-
-    .summary-work {
-      flex: 1; /* Distribute available space equally */
-      /* OR */
-      width: 99%; /* Fixed width (adjust as needed) */
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background-color: #f9f9f9;
-      overflow-y: auto; /* Add scrollbar if content overflows vertically */
-      gap: 20px;
-    }
     </style>
 </head>
 <body>
@@ -198,43 +184,26 @@
             </div>
         </div>
     </section>
-    <div class="summary-work">
     <section class="form-section">
         <h2>Add Expense</h2>
         <form action="/company_expenses" method="POST" class="form-row">
-          <div class="form-group">
             <input type="date" name="date" id="date" required pattern="\d{4}-\d{2}-\d{2}">
-          </div>
-          <div class="form-group">
             <select name="category" id="category" required>
               <option value="" disabled selected>Select Category</option>
             </select>
-          </div>
-          <div class="form-group">
             <select name="method" id="method" required>
               <option value="" disabled selected>Select Method</option>
             </select>
-          </div>
-          <div class="form-group">
             <input type="text" name="description" placeholder="Description (Optional)">
-          </div>
-          <div class="form-group" style="position: relative; display: inline-block;">
-            <input type="text" name="amount" id="exp_amount" placeholder="Amount" required pattern="\d+(\.\d{1,2})?" style="width: 7em;" maxlength="10">
-            <span id="exp_tooltip" style="visibility: hidden; position: absolute; top: 120%; left: 0; background-color: #dff0d8; color: #333; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; white-space: nowrap; z-index: 1;">
-              Amount in words
-            </span>
-          </div>
-          <div class="form-group">
-            <button type="submit">Insert</button>
-          </div>
+            <input type="text" name="amount" id="amount" placeholder="Amount" required pattern="\d+(\.\d{1,2})?">
+            <button type="submit">Add Expense</button>
         </form>
     </section>
-    </div>
 
     <span></span>
-    <div class="summary-work">
+    <section class="form-section">
       <h2>Add Work Detail for Customers</h2>
-      <div class="summary1">
+      <div class="summary">
       <form class="form-row" method="POST" action="{{ url_for('company_expense_work_details') }}">
         <div class="form-group">
           <select name="cust_id" id="cust_id" required>
@@ -262,8 +231,8 @@
           </select>
         </div>
         <div class="form-group" style="position: relative; display: inline-block;">
-          <input type="text" id="cust_amount" name="cust_amount" required pattern="\d+(\.\d{1,2})?" placeholder="Amount" maxlength="10" style="width: 7em;">
-          <span id="tooltip" style="visibility: hidden; position: absolute; top: 120%; left: 0; background-color: #dff0d8; color: #333; 
+          <input type="text" id="cust_amount" name="cust_amount" required pattern="\d+(\.\d{1,2})?" placeholder="Amount">
+          <span id="tooltip" style="visibility: hidden; position: absolute; top: 120%; left: 0; background-color: #f8f9fa; color: #333; 
               padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; white-space: nowrap; z-index: 1;">
               Amount in words
           </span>
@@ -281,8 +250,6 @@
           <button type="submit">Insert</button>
         </div>
       </form>
-      </div>
-    </div>
       {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div>
@@ -294,6 +261,8 @@
         </div>
       {% endif %}
       {% endwith %}
+      </div>
+    </section>
   </div>
 <script>
     function confirmDelete(button) {
@@ -378,72 +347,6 @@
           .catch(error => console.error('Error fetching subcategories:', error));
       }
     });
-
-    function numberToWordsIndian(num) {
-        const belowTwenty = [
-            "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", 
-            "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"
-        ];
-        const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-        const units = ["", "Thousand", "Lakh", "Crore", "Arab"];
-    
-        function convertToWords(n) {
-            if (n < 20) return belowTwenty[n];
-            else if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + belowTwenty[n % 10] : "");
-            else return belowTwenty[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " " + convertToWords(n % 100) : "");
-        }
-    
-        let word = "";
-        let unitIndex = 0;
-    
-        // Split number into groups based on Indian numbering system
-        const parts = [];
-        parts.push(num % 1000); // First 3 digits
-        num = Math.floor(num / 1000);
-    
-        while (num > 0) {
-            parts.push(num % 100); // Next 2 digits
-            num = Math.floor(num / 100);
-        }
-    
-        for (let i = 0; i < parts.length; i++) {
-            if (parts[i] !== 0) {
-                word = convertToWords(parts[i]) + " " + units[i] + (word ? " " + word : "");
-            }
-        }
-    
-        return word.trim();
-    }
-    
-    const amountInput = document.getElementById("cust_amount");
-    const tooltip = document.getElementById("tooltip");
-    
-    amountInput.addEventListener("input", function () {
-        const amount = this.value.replace(/,/g, ""); // Remove commas if any
-    
-        if (!isNaN(amount) && Number(amount) >= 100) {
-            tooltip.textContent = numberToWordsIndian(Math.floor(Number(amount)));
-            tooltip.style.visibility = "visible";
-        } else {
-            tooltip.style.visibility = "hidden";
-        }
-    });
-
-
-    const expAmt = document.getElementById("exp_amount");
-    const expTooltip = document.getElementById("exp_tooltip");
-    
-    expAmt.addEventListener("input", function () {
-        const amount = this.value.replace(/,/g, ""); // Remove commas if any
-    
-        if (!isNaN(amount) && Number(amount) >= 100) {
-            expTooltip.textContent = numberToWordsIndian(Math.floor(Number(amount)));
-            expTooltip.style.visibility = "visible";
-        } else {
-            expTooltip.style.visibility = "hidden";
-        }
-    });
-
 </script>
 </body>
 </html>

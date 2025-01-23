@@ -96,6 +96,9 @@
         border: 1px solid #ccc;
         border-radius: 4px;
     }
+    .form-group input[type="text"] {
+        width: 7em;
+    }
     /* Add more specific selectors if needed */
     #category, #method, #date, #subcategory, #description, #amount {
       font-size: 16px;
@@ -230,10 +233,12 @@
     }
 
     .customer-info-left {
-        flex: 1;
+        flex: 2;
+        font-size: 16px;
+        gap: 15px;
     }
     .customer-info-right {
-        flex: 1;
+        flex: 3;
     }
 
   </style>
@@ -252,7 +257,8 @@
       <div class="customer-info-left">
         <p><strong>Customer Info</strong></p>
         <input type="hidden" id="customer_id" value="{{ customer.id }}">
-        <p><strong>Full Name:</strong> {{ customer.full_name }}, <strong>Mobile:</strong> {{ customer.mobile_no }}, <strong>Email Id:</strong> {{ customer.email_id }}</p>
+        <p><strong>Full Name:</strong> {{ customer.full_name }}, <strong>Mobile:</strong> {{ customer.mobile_no }} </p>
+        <p><strong>Email Id:</strong> {{ customer.email_id }}, <strong>Occupation:</strong> {{ customer.occupation}}</p>
         <p><strong>Address:</strong> {{ customer.address }}</p>
       </div>
       <div class="customer-info-right">
@@ -264,13 +270,13 @@
                 <label for="home_construction_area">Construction Area (In Sq ft):</label>
               </td>
               <td>
-                <input type="text" id="home_construction_area" name="home_construction_area" required pattern="\d+(\.\d{1,2})?" placeholder="Construction Size" value="{{ customer.construction_size if customer.construction_size else '0' }}" maxlength="10" style="width: 10em;">
+                <input type="text" id="home_construction_area" name="home_construction_area" required pattern="\d+(\.\d{1,2})?" placeholder="Construction Size" value="{{ customer.construction_size if customer.construction_size else '0' }}" maxlength="10" style="width: 7em;">
               </td>
               <td>
-                <label for="home_construction_rate">Rate of Construction:</label>
+                <label for="home_construction_rate">Rate:</label>
               </td>
               <td>
-                <input type="text" id="home_construction_rate" name="home_construction_rate" required pattern="\d+(\.\d{1,2})?" placeholder="Construction Rate" value="{{ customer.rate_of_construction if customer.rate_of_construction else '0'}}" maxlength="10" style="width: 10em;">
+                <input type="text" id="home_construction_rate" name="home_construction_rate" required pattern="\d+(\.\d{1,2})?" placeholder="Construction Rate" value="{{ customer.rate_of_construction if customer.rate_of_construction else '0'}}" maxlength="10" style="width: 7em;">
                </td>
               <td>
                 <strong> <label for="total_construction_cost"> {{ (customer.construction_size or 0) * (customer.rate_of_construction or 0) }} /-</label></strong>
@@ -281,13 +287,13 @@
                 <label for="wall_compound_area">Wall Compound Area (In Sq Ft):</label>
               </td>
               <td>
-                <input type="text" id="wall_compound_area" name="wall_compound_area" required pattern="\d+(\.\d{1,2})?" placeholder="Wall Compound Area" value="{{ customer.wall_compound_size if customer.wall_compound_size else '0' }}" maxlength="10" style="width: 10em;">
+                <input type="text" id="wall_compound_area" name="wall_compound_area" required pattern="\d+(\.\d{1,2})?" placeholder="Wall Compound Area" value="{{ customer.wall_compound_size if customer.wall_compound_size else '0' }}" maxlength="10" style="width: 7em;">
               </td>
               <td>
-                <label for="wall_compound_rate">Rate of Wall Compound:</label>
+                <label for="wall_compound_rate">Rate:</label>
               </td>
               <td>
-                <input type="text" id="wall_compound_rate" name="wall_compound_rate" required pattern="\d+(\.\d{1,2})?" placeholder="Wall Compound Rate" value="{{ customer.rate_of_wall_compound if customer.rate_of_wall_compound else '0' }}" maxlength="10" style="width: 10em;">
+                <input type="text" id="wall_compound_rate" name="wall_compound_rate" required pattern="\d+(\.\d{1,2})?" placeholder="Wall Compound Rate" value="{{ customer.rate_of_wall_compound if customer.rate_of_wall_compound else '0' }}" maxlength="10" style="width: 7em;">
               </td>
               <td>
                 <strong> <label for="total_wall_compound_cost"> {{ (customer.wall_compound_size or 0) * (customer.rate_of_wall_compound or 0) }} /-</label></strong>
@@ -338,8 +344,8 @@
         </div>
         <div class="form-group" style="position: relative; display: inline-block;">
           <label for="amount">Amount:</label>
-          <input type="text" id="amount" name="amount" required pattern="\d+(\.\d{1,2})?" placeholder="Amount">
-          <span id="tooltip" style="visibility: hidden; position: absolute; top: 120%; left: 0; background-color: #f8f9fa; color: #333; 
+          <input type="text" id="amount" name="amount" required pattern="\d+(\.\d{1,2})?" placeholder="Amount" maxlength="10">
+          <span id="tooltip" style="visibility: hidden; position: absolute; top: 120%; left: 0; background-color: #dff0d8; color: #333; 
               padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; white-space: nowrap; z-index: 1;">
               Amount in words
           </span>
@@ -352,7 +358,7 @@
         </div>
         <div class="form-group">
           <label for="description">Description:</label>
-          <input type="text" name="description" id="description" placeholder="Description (Optional)">
+          <input type="text" name="description" id="description" placeholder="Description (Optional)" style="width: 10em">
         </div>
 
         <div class="form-group">
@@ -623,7 +629,7 @@
             "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"
         ];
         const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-        const units = ["", "Thousand", "Lakh", "Crore"];
+        const units = ["", "Thousand", "Lakh", "Crore", "Arab"];
     
         function convertToWords(n) {
             if (n < 20) return belowTwenty[n];
