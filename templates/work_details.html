@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
   <title>Work Details</title>
 
   <style>
@@ -407,7 +408,7 @@
 
       <div class="record-box">
         <h2>Work Records</h2>
-        <table class="table-record">
+        <table class="table-record" id="targetTable">
           <thead>
             <tr>
               <th>Date</th>
@@ -437,7 +438,6 @@
             </tr>
             {% endfor %}
           </tbody>
-
         </table>
       </div>
     </section>
@@ -475,7 +475,33 @@
         </tbody>
       </table>
       <h3><p><strong>Overall Profit:</strong>₹ {{ profit }}</p></h3>
-      <a href="{{ url_for('export_work_details', customer_id=customer.id) }}" class="button">Export to PDF</a>
+        <div class="form-group">
+          <label for="category">Category:</label>
+          <select name="exp_category_id" id="exp_category" required>
+            <option value="" disabled selected>Select Category</option>
+            {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="subcategory">Subcategory:</label>
+          <select name="exp_subcategory_id" id="exp_subcategory" required>
+            <option value="" disabled selected>Select Subcategory</option>
+          </select>
+        </div>
+        <!-- Hidden input for customer id if not otherwise available -->
+        <input type="hidden" id="customer_id" value="{{ customer.id }}">
+        
+        <div class="form-group">
+          <a id="exportLink" href="#" class="button">Export to PDF (SubCategoryWise)</a>
+        </div>
+
+        <p> 
+        <div class="form-group">
+          <a href="{{ url_for('export_work_details', customer_id=customer.id) }}" class="button">Export to PDF (All)</a>
+        </div>
+        </p>
       </div>
 
       <div class="upload-box">
@@ -513,9 +539,65 @@
         return false;
       }
     }
+
+    // Update the export link when a subcategory is selected
+    document.getElementById('exp_subcategory').addEventListener('change', function() {
+      const subcatId = this.value;
+      const customerId = document.getElementById('customer_id').value;
+      const catId = document.getElementById('exp_category').value;
+      
+      // Construct the URL for export. Adjust the route if needed.
+      // For example, if your route is defined as: 
+      // @app.route('/export_work_details/<int:customer_id>/<int:subcategory_id>')
+      // then:
+      const exportUrl = `/export_work_subcat_details/${customerId}/${catId}/${subcatId}`;
+      
+      // Or if you are using query parameters:
+      // const exportUrl = `/export_work_details?customer_id=${customerId}&subcategory_id=${subcatId}`;
+      
+      // Update the export link's href
+      document.getElementById('exportLink').href = exportUrl;
+    });
+
     document.getElementById('category').addEventListener('change', function() {
       const categoryId = this.value;
       const subcategorySelect = document.getElementById('subcategory');
+      const methodSelect = document.getElementById('method');
+
+      methodSelect.innerHTML = '<option value="" disabled selected>Select Method</option>';
+      fetch('/is_category_inflow/' + categoryId)
+        .then(response => response.json())
+        .then(data => {
+          // Show method selection element and populate options
+          data.method_options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.value;
+            optionElement.text = option.label;
+            methodSelect.appendChild(optionElement);
+          });
+        });
+
+      // Clear current subcategories
+      subcategorySelect.innerHTML = '<option value="" disabled selected>Select Subcategory</option>';
+
+      if (categoryId) {
+        fetch(`/get_subcat_work_detail/${categoryId}`)
+          .then(response => response.json())
+          .then(data => {
+            data.forEach(subcategory => {
+              const option = document.createElement('option');
+              option.value = subcategory.id;
+              option.textContent = subcategory.name;
+              subcategorySelect.appendChild(option);
+            });
+          })
+          .catch(error => console.error('Error fetching subcategories:', error));
+      }
+    });
+
+    document.getElementById('exp_category').addEventListener('change', function() {
+      const categoryId = this.value;
+      const subcategorySelect = document.getElementById('exp_subcategory');
       const methodSelect = document.getElementById('method');
 
       methodSelect.innerHTML = '<option value="" disabled selected>Select Method</option>';

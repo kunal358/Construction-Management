@@ -748,6 +748,72 @@ def export_work_details(customer_id):
         print(f"Error exporting work details: {e}")
         return jsonify({'error': 'Failed to export work details'}), 500
 
+@app.route('/export_work_subcat_details/<int:customer_id>/<int:category_id>/<int:subcategory_id>', methods=['GET'])
+def export_work_subcat_details(customer_id, category_id, subcategory_id):
+    try:
+        # Fetch customer details
+        customer = Customer.query.get(customer_id)
+        if not customer:
+            return jsonify({'error': 'Customer not found'}), 404
+
+        # Fetch and sort work details by date
+        data = WorkDetail.query.filter_by(customer_id=customer_id, category_id=category_id, subcategory_id=subcategory_id).order_by(desc(WorkDetail.date)).all()
+        if not data:
+            return jsonify({'error': 'No record found for this customer'}), 404
+
+        # Generate the IST timestamp
+        ist_offset = timedelta(hours=5, minutes=30)
+        ist_now = datetime.now(timezone.utc) + ist_offset
+        report_generated_at = ist_now.strftime("%d-%m-%Y %H:%M:%S")  # Format: DD-MM-YYYY HH:MM:SS
+
+        # Create a PDF object
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", style="B", size=14)
+
+        # Add customer information
+        pdf.set_font("Arial", "B", 16)
+        pdf.cell(0, 10, "AB Construction Report", 0, 1, 'C')
+        pdf.ln(10)
+
+        pdf.set_font("Arial", size=12)
+        # Add customer information
+        pdf.cell(0, 10, f"Customer Name: {customer.full_name},  Mobile No: {customer.mobile_no}, Email: {customer.email_id or 'N/A'}", 0, 1, 'L')
+        pdf.cell(0, 10, f"Address: {customer.address or 'N/A'}", 0, 1, 'L')
+        pdf.ln(10)
+
+        # Add summary
+        pdf.set_font("Arial", style="B", size=12)
+        if data:  # Check if there are any records
+            # Print the header once using the first record's category and subcategory
+            pdf.cell(0, 10, f"Records for {data[0].category.name} - {data[0].subcategory.name}", ln=True, align="C")
+
+        pdf.set_font("Arial", size=12)
+        total_amount = 0
+        col_widths = [30, 40, 30, 50]  # Adjusted column widths
+        for detail in data:
+            pdf.cell(col_widths[0], 10, detail.date.strftime('%d-%m-%Y') if detail.date else '', 1, 0, 'L')
+            pdf.cell(col_widths[1], 10, f"{detail.amount:.2f}", 1, 0, 'L')
+            pdf.cell(col_widths[2], 10, detail.method if detail.method else '', 1, 0, 'L')
+            truncated_description = (detail.description or '')[:30] + ('...' if len(detail.description or '') > 30 else '')
+            pdf.cell(col_widths[3], 10, truncated_description, 1, 0, 'L')
+            pdf.ln(10)
+            total_amount += detail.amount
+
+        pdf.ln(10)
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 10, f"Total Amount: {total_amount:.2f}", ln=True, align="R")
+
+        # Output PDF content and ensure it is bytes
+        pdf_data = bytes(pdf.output(dest='S'))  # Convert bytearray to bytes
+        response = Response(pdf_data, mimetype='application/pdf')
+        response.headers['Content-Disposition'] = f'attachment;filename={customer.full_name}_{customer.mobile_no}_Record.pdf'
+        return response
+
+    except Exception as e:
+        print(f"Error exporting subcat work details: {e}")
+        return jsonify({'error': 'Failed to export subcat work details'}), 500
+
 # Define allowed extensions
 ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'jpeg', 'png'}
 
