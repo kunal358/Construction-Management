@@ -1,0 +1,6 @@
+Withdraw_Cash,Withdraw cash from Bank
+Deposit_Cash,Deposit cash into Bank
+Fuel,Disel/Petrol cost
+Salary,Salary Distribution
+Tax,Tax Payment
+Others, Other expense

@@ -488,16 +488,32 @@ def export_data(file_type):
         # Add PDF export logic here
         return jsonify({'message': 'Exported to PDF successfully.'})
 
+def load_expense_categories_from_file(filepath='./instance/expense_categories.txt'):
+    expense_categories = []
+    try:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            for line in file:
+                if line.strip():  # skip empty lines
+                    parts = line.strip().split(',', 1)
+                    if len(parts) == 2:
+                        value, label = parts
+                        expense_categories.append({"value": value, "label": label})
+    except Exception as e:
+        print(f"Error loading expense categories: {e}")
+    return expense_categories
+
 @app.route('/get_expense_categories')
 def get_expense_categories():
-  expense_categories = [
-      {"value": "Fuel", "label": "Disel/Petrol cost"},
-      {"value": "Salary", "label": "Salary Distribution"},
-      {"value": "Tax", "label": "Tax Payment"},
-      {"value": "Withdraw_Cash", "label": "Withdraw cash from Bank"},
-      {"value": "Deposit_Cash", "label": "Deposit cash into Bank"}
-  ]
-  return jsonify(expense_categories)
+#  expense_categories = [
+#      {"value": "Fuel", "label": "Disel/Petrol cost"},
+#      {"value": "Salary", "label": "Salary Distribution"},
+#      {"value": "Tax", "label": "Tax Payment"},
+#      {"value": "Withdraw_Cash", "label": "Withdraw cash from Bank"},
+#      {"value": "Deposit_Cash", "label": "Deposit cash into Bank"}
+#  ]
+#  return jsonify(expense_categories)
+  categories = load_expense_categories_from_file()
+  return jsonify(categories)
 
 @app.route('/get_expense_method/<string:expense_category>')
 def get_expense_method(expense_category):
