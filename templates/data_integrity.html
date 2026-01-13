@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Data Inegrity Issues{% endblock %}
+{% block content %}
+  <div class="container">
+  <!-- Header -->
+  <header>
+    <h1 class="dashboard-title" style="color:red;">Data Integirty Issues</h1>
+  </header>
+
+<table class="styled-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Date</th>
+      <th>Customer</th>
+      <th>Category</th>
+      <th>SubCategory</th>
+      <th>Method</th>
+      <th>Amount</th>
+      <th>Issue</th>
+      <th>Fix</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for issue in issues %}
+    <tr>
+      <td>{{ issue.record.id }}</td>
+      <td>{{ issue.record.date.strftime('%d-%m-%Y') }}</td>
+      <td>{{ issue.record.customer.full_name }}</td>
+      <td>{{ issue.record.category.name }}</td>
+      <td>{{ issue.record.subcategory.name }}</td>
+      <td>{{ issue.record.method }}</td>
+      <td>{{ issue.record.amount }}</td>
+      <td style="color:red;">{{ issue.description }}</td>
+      <td>
+        <form method="POST" action="{{ url_for('fix_work_detail', work_id = issue.record.id) }}">
+          <select name="method" required>
+            <option value="CASH">CASH</option>
+            <option value="BANK">BANK</option>
+          </select>
+          <button type="submit" class="btn btn-danger btn-sm">Fix</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

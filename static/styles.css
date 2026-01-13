@@ -4,7 +4,8 @@ body {
     margin: 0;
     color: #333;
     padding: 10px 80px;
-    background-color: #f0f2f5; /* Softer background */
+    background-color: #f4f6f9; /* Softer background */
+    color: #333;
 }
 
 .container {
@@ -30,6 +31,7 @@ body {
     padding: 10px 15px; /* Add padding for spacing */
     border-radius: 8px; /* Rounded corners */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    background: #1f2937;
 }
 
 .navigation a {
@@ -319,4 +321,13 @@ table .btn-delete:hover {
     background-color: #0056b3;
 }
 
+.money-positive {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.money-negative {
+    color: #b91c1c;
+    font-weight: 600;
+}
 

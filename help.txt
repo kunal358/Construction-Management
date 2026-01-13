@@ -1,0 +1,51 @@
+-- To query table
+sqlite2 construction.db
+
+sqlite> .table
+category       customer_file  subcategory  
+customer       expense        work_detail 
+
+To get metadata of table:
+=========================
+PRAGMA table_info(work_detail);
+
+To get total outflow:
+=====================
+SELECT
+    SUM(w.amount) AS total_outflow
+FROM work_detail AS w
+INNER JOIN category AS c
+    ON w.category_id = c.id
+WHERE lower(c.type) = 'outflow';
+
+
+sqlite> PRAGMA table_info(work_detail);
+0|id|INTEGER|1||1
+1|customer_id|INTEGER|1||0
+2|date|DATE|1||0
+3|category_id|INTEGER|1||0
+4|subcategory_id|INTEGER|1||0
+5|amount|FLOAT|1||0
+6|method|TEXT|0||0
+7|description|TEXT|0||0
+
+sqlite> PRAGMA table_info(category);
+0|id|INTEGER|1||1
+1|name|VARCHAR(50)|1||0
+2|type|VARCHAR(10)|1||0
+
+sqlite> PRAGMA table_info(customer);
+0|id|INTEGER|1||1
+1|full_name|VARCHAR(100)|1||0
+2|mobile_no|VARCHAR(20)|1||0
+3|occupation|VARCHAR(50)|0||0
+4|email_id|VARCHAR(50)|0||0
+5|address|TEXT|0||0
+6|construction_size|FLOAT|0||0
+7|rate_of_construction|FLOAT|0||0
+8|wall_compound_size|FLOAT|0||0
+9|rate_of_wall_compound|FLOAT|0||0
+
+
+
+

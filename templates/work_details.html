@@ -399,7 +399,7 @@
                     {{ category.name }}
                 </a>
               </td>
-              <td>₹{{ category[2] or 0 }}</td>
+              <td class="money-positive">₹{{ category[2] or 0 }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -426,7 +426,7 @@
               <td>{{ record.date }}</td>
               <td>{{ record.category }}</td>
               <td>{{ record.subcategory }}</td>
-              <td>₹ {{ record.amount }}</td>
+              <td class="money-positive">₹ {{ record.amount }}</td>
               <td>{{ record.method or 'N/A' }}</td>
               <td>{{ record.description or 'N/A' }}</td>
               <td>
@@ -457,20 +457,20 @@
         <tbody>
           <tr>
             <td> <p><strong>Cash</strong></p></td>
-            <td> <p>₹ {{ inflow_cash }}</p></td>
-            <td> <p>₹ {{ outflow_cash }}</p></td>
-            <td> <p><strong>₹ {{ inflow_cash - outflow_cash }}</strong></p></td>
+            <td class="money-positive"> <p>₹ {{ inflow_cash }}</p></td>
+            <td class="money-negative"> <p>₹ {{ outflow_cash }}</p></td>
+            <td class="money-positive"> <p><strong>₹ {{ inflow_cash - outflow_cash }}</strong></p></td>
           </tr>
             <td> <p><strong>Bank</strong></p></td>
-            <td> <p>₹ {{ inflow_bank }}</p></td>
-            <td> <p>₹ {{ outflow_bank }}</p></td>
-            <td> <p><strong>₹ {{ inflow_bank - outflow_bank }}</strong></p></td>
+            <td class="money-positive"> <p>₹ {{ inflow_bank }}</p></td>
+            <td class="money-negative"> <p>₹ {{ outflow_bank }}</p></td>
+            <td class="money-positive"> <p><strong>₹ {{ inflow_bank - outflow_bank }}</strong></p></td>
           </tr>
           </tr>
             <td> <p><strong>Total</strong></p></td>
-            <td> <p><strong>₹ {{ inflow_total }}</strong></p></td>
-            <td> <p><strong>₹ {{ outflow_total }}</strong></p></td>
-            <td> <p><strong>₹ {{ inflow_total - outflow_total }}</strong></p></td>
+            <td class="money-positive"> <p><strong>₹ {{ inflow_total }}</strong></p></td>
+            <td class="money-negative"> <p><strong>₹ {{ outflow_total }}</strong></p></td>
+            <td class="money-positive"> <p><strong>₹ {{ inflow_total - outflow_total }}</strong></p></td>
           </tr>
         </tbody>
       </table>

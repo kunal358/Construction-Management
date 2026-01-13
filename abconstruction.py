@@ -3,7 +3,7 @@ import sys
 import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
 from models import *
-from sqlalchemy import desc, func
+from sqlalchemy import desc, func, or_
 from datetime import datetime, timezone, timedelta
 import pytz
 from werkzeug.utils import secure_filename
@@ -66,6 +66,7 @@ def delete_work_detail(customer_id, work_id):
 # Routes
 @app.route('/')
 def dashboard():
+  issues = []
   try:
     total_outflow = (
         db.session.query(db.func.sum(WorkDetail.amount))
@@ -139,20 +140,38 @@ def dashboard():
     profit = total_inflow - total_outflow - total_internal_exp
 
     if total_inflow != (total_inflow_cash + total_inflow_bank):
+      issues.append({
+            "type": "INFLOW_MISMATCH",
+            "message": "Total inflow does not match cash + bank inflow"
+      })
       raise ValueError(f"Total money recieved does not match")
 
     if total_outflow != (total_outflow_cash + total_outflow_bank):
+      issues.append({
+            "type": "OUTFLOW_MISMATCH",
+            "message": "Total outflow does not match cash + bank outflow"
+      })
       raise ValueError(f"Total money spent does not match")
 
     if total_internal_exp != (total_internal_exp_cash + total_internal_exp_bank):
+      issues.append({
+            "type": "INTERNAL_EXP_FLOW_MISMATCH",
+            "message": "Internal expenses cash/bank mismatch"
+      })
       raise ValueError(f"Total internal expense does not match")
 
     if profit != (cash_in_hand + bank_balance):
+      issues.append({
+            "type": "PROFIT_MISMATCH",
+            "message": "Profit does not match cash + bank balance"
+      })
       raise ValueError(f"Total profit does not match")
 
   except Exception as e:
     print(f"Error calculating total: {e}")
-    sys.exit(1)
+
+  integrity_issues = issues
+  has_integrity_issues = len(integrity_issues) > 0
 
   # Handle customer search
   search_query = request.args.get('search', '').strip()
@@ -177,7 +196,9 @@ def dashboard():
       bank_balance=bank_balance,
       profit=profit,
       search_results=search_results,
-      search_query=search_query
+      search_query=search_query,
+      integrity_issues=integrity_issues,
+      has_integrity_issues=has_integrity_issues
   )
 
 @app.route('/categories', methods=['GET', 'POST'])
@@ -365,6 +386,17 @@ def customer_work_details(id):
       if not selected_category:
           flash('Invalid category selected!', 'danger')
           return redirect(url_for('customer_work_details', id=id))
+ 
+      method = data.get('method')
+  
+      # 🔐 HARD VALIDATION
+      if selected_category.type.lower() == 'outflow':
+          if method not in ('CASH', 'BANK'):
+              flash('Outflow must be CASH or BANK', 'danger')
+              return redirect(url_for('customer_work_details', id=id))
+      else:
+          # For inflow or others, normalize
+          method = None
 
       new_work = WorkDetail(
           customer_id=id,
@@ -372,7 +404,7 @@ def customer_work_details(id):
           category_id=data['category_id'],
           subcategory_id=data.get('subcategory_id'),
           amount=float(data['amount']),
-          method=data.get('method'),
+          method=method,
           description=data.get('description'),
       )
       db.session.add(new_work)
@@ -755,7 +787,7 @@ def export_work_details(customer_id):
         pdf.ln(10)
 
         # Output PDF content and ensure it is bytes
-        pdf_data = bytes(pdf.output(dest='S'))  # Convert bytearray to bytes
+        pdf_data = bytes(pdf.output(dest='S').encode('latin-1'))  # Convert bytearray to bytes
         response = Response(pdf_data, mimetype='application/pdf')
         response.headers['Content-Disposition'] = f'attachment;filename={customer.full_name}_{customer.mobile_no}_Record.pdf'
         return response
@@ -821,7 +853,7 @@ def export_work_subcat_details(customer_id, category_id, subcategory_id):
         pdf.cell(0, 10, f"Total Amount: {total_amount:.2f}", ln=True, align="R")
 
         # Output PDF content and ensure it is bytes
-        pdf_data = bytes(pdf.output(dest='S'))  # Convert bytearray to bytes
+        pdf_data = bytes(pdf.output(dest='S').encode('latin-1'))  # Convert bytearray to bytes
         response = Response(pdf_data, mimetype='application/pdf')
         response.headers['Content-Disposition'] = f'attachment;filename={customer.full_name}_{customer.mobile_no}_Record.pdf'
         return response
@@ -971,7 +1003,7 @@ def export_subcategory_pdf(subcategory_id):
     pdf.ln(10)
 
     # Output PDF content and ensure it is bytes
-    pdf_data = bytes(pdf.output(dest='S'))  # Convert bytearray to bytes
+    pdf_data = bytes(pdf.output(dest='S').encode('latin-1'))  # Convert bytearray to bytes
     response = Response(pdf_data, mimetype='application/pdf')
     response.headers['Content-Disposition'] = f'attachment;filename=Report_{subCat.name}.pdf'
     return response
@@ -1007,6 +1039,58 @@ def company_expense_work_details():
         print(f"Error while adding customer record: {e}")
         flash('An error occurred while adding customer record.', 'danger')
     return redirect(url_for('manage_expenses'))
+
+@app.route('/data-integrity')
+def data_integrity_issues():
+    issues = []
+
+    # Outflow without method
+    outflow_without_method = (
+      db.session.query(WorkDetail)
+      .join(Category)
+      .filter(
+          Category.type.ilike('outflow'),
+          or_(
+              WorkDetail.method.is_(None),
+              WorkDetail.method.ilike('none')
+          )
+      )
+      .all()
+    )
+
+    for wd in outflow_without_method:
+      cust = db.session.get(Customer, wd.customer_id)
+      issues.append({
+          "id": wd.id,
+          "type": "MISSING_METHOD",
+          "customer_name": cust.full_name,
+          "description": "Outflow record without CASH/BANK",
+          "record": wd
+      })
+
+    return render_template(
+        "data_integrity.html",
+        issues=issues
+    )
+
+@app.route('/fix-work-detail/<int:work_id>', methods=['POST'])
+def fix_work_detail(work_id):
+    method = request.form.get('method')
+    wd = db.session.get(WorkDetail, work_id)
+
+    # update method
+    wd.method = method.upper()
+
+    db.session.commit()
+    db.session.refresh(wd)
+    flash('Entry corrected successfully', 'success')
+
+    return redirect(url_for('data_integrity_issues'))
+
+@db.event.listens_for(WorkDetail, "before_insert")
+def validate_work_detail(mapper, connection, target):
+    if target.category.type.lower() == 'outflow' and target.method not in ('CASH', 'BANK'):
+        raise ValueError("Outflow must be CASH or BANK")
 
 if __name__ == '__main__':
     setup_database()

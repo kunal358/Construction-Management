@@ -63,6 +63,7 @@ class WorkDetail(db.Model):
 
   category = db.relationship('Category', backref='work_details', lazy=True)
   subcategory = db.relationship('Subcategory', backref='work_details', lazy=True)
+  customer = db.relationship('Customer', backref='work_details')
 
 class Expense(db.Model):
     id = db.Column(db.Integer, primary_key=True)

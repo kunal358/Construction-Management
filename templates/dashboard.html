@@ -7,6 +7,16 @@
     <h1 class="dashboard-title">AB Constructions</h1>
   </header>
 
+  {% if has_integrity_issues %}
+  <div style="background:#ffe6e6; border:1px solid red; padding:10px; margin-bottom:15px;">
+    <strong style="color:red;">⚠ Data Integrity Issues Detected</strong>
+    <a href="{{ url_for('data_integrity_issues') }}"
+       style="color:red; font-weight:bold; margin-left:10px;">
+       Review & Fix
+    </a>
+  </div>
+  {% endif %}
+
   <!-- Summary Section -->
   <section class="summary">
     <h2>Overall Cash Flow[Customers]</h2>
@@ -23,20 +33,20 @@
         <tbody>
           <tr>
             <td> <p><strong>Cash</strong></p></td>
-            <td> <p>₹ {{ total_inflow_cash }}</p></td>
-            <td> <p>₹ {{ total_outflow_cash }}</p></td>
-            <td> <p><strong>₹ {{ total_inflow_cash - total_outflow_cash }}</strong></p></td>
+            <td class="money-positive"> <p>₹ {{ total_inflow_cash }}</p></td>
+            <td class="money-negative"> <p>₹ {{ total_outflow_cash }}</p></td>
+            <td class="money-positive"> <p><strong>₹ {{ total_inflow_cash - total_outflow_cash }}</strong></p></td>
           </tr>
             <td> <p><strong>Bank</strong></p></td>
-            <td> <p>₹ {{ total_inflow_bank }}</p></td>
-            <td> <p>₹ {{ total_outflow_bank }}</p></td>
-            <td> <p><strong>₹ {{ total_inflow_bank - total_outflow_bank }}</strong></p></td>
+            <td class="money-positive"> <p>₹ {{ total_inflow_bank }}</p></td>
+            <td class="money-negative"> <p>₹ {{ total_outflow_bank }}</p></td>
+            <td class="money-positive"> <p><strong>₹ {{ total_inflow_bank - total_outflow_bank }}</strong></p></td>
           </tr>
           </tr>
             <td> <p><strong>Total</strong></p></td>
-            <td> <p><strong>₹ {{ total_inflow }}</strong></p></td>
-            <td> <p><strong>₹ {{ total_outflow }}</strong></p></td>
-            <td> <p><strong>₹ {{ total_inflow - total_outflow }}</strong></p></td>
+            <td class="money-positive"> <p><strong>₹ {{ total_inflow }}</strong></p></td>
+            <td class="money-negative"> <p><strong>₹ {{ total_outflow }}</strong></p></td>
+            <td class="money-positive"> <p><strong>₹ {{ total_inflow - total_outflow }}</strong></p></td>
           </tr>
         </tbody>
       </table>
@@ -59,11 +69,11 @@
         </thead>
         <tbody>
           <tr>
-            <td> <p>₹ {{ total_internal_exp_cash }}</p></td>
-            <td> <p>₹ {{ total_internal_exp_bank }}</p></td>
-            <td> <p><strong>₹ {{ total_internal_exp }}</strong></p></td>
-            <td> <p>₹ {{ total_withdraw_cash }}</p></td>
-            <td> <p>₹ {{ total_deposit_cash }}</p></td>
+            <td class="money-negative"> <p>₹ {{ total_internal_exp_cash }}</p></td>
+            <td class="money-negative"> <p>₹ {{ total_internal_exp_bank }}</p></td>
+            <td class="money-negative"> <p><strong>₹ {{ total_internal_exp }}</strong></p></td>
+            <td class="money-positive"> <p>₹ {{ total_withdraw_cash }}</p></td>
+            <td class="money-positive"> <p>₹ {{ total_deposit_cash }}</p></td>
           </tr>
         </tbody>
       </table>
@@ -84,9 +94,9 @@
         </thead>
         <tbody>
           <tr>
-            <td> <p><strong>₹ {{ cash_in_hand }}</strong></p></td>
-            <td> <p><strong>₹ {{ bank_balance }}</strong></p></td>
-            <td> <p><strong>₹ {{ profit }}</strong></p></td>
+            <td class="money-positive"> <p><strong>₹ {{ cash_in_hand }}</strong></p></td>
+            <td class="money-positive"> <p><strong>₹ {{ bank_balance }}</strong></p></td>
+            <td class="money-positive"> <p><strong>₹ {{ profit }}</strong></p></td>
           </tr>
         </tbody>
       </table>
