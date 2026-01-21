@@ -3,7 +3,7 @@ import sys
 import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
 from models import *
-from sqlalchemy import desc, func, or_
+from sqlalchemy import desc, func, or_, select
 from datetime import datetime, timezone, timedelta
 import pytz
 from werkzeug.utils import secure_filename
@@ -377,8 +377,9 @@ def customer_work_details(id):
   else:
     total_amount = 0
 
-  # Handle adding new work details
-  if request.method == 'POST':
+  try:
+    # Handle adding new work details
+    if request.method == 'POST':
       data = request.form.to_dict()
       category_id = int(data['category_id'])
       selected_category = Category.query.get(category_id)
@@ -386,9 +387,9 @@ def customer_work_details(id):
       if not selected_category:
           flash('Invalid category selected!', 'danger')
           return redirect(url_for('customer_work_details', id=id))
- 
+   
       method = data.get('method')
-  
+    
       # 🔐 HARD VALIDATION
       if selected_category.type.lower() == 'outflow':
           if method not in ('CASH', 'BANK'):
@@ -410,6 +411,11 @@ def customer_work_details(id):
       db.session.add(new_work)
       db.session.commit()
       flash('Work detail added successfully!', 'success')
+      return redirect(url_for('customer_work_details', id=id))
+
+  except Exception as e:
+      print(f"Error while adding work details: {e}")
+      flash('An error occurred while adding work details.', 'danger')
       return redirect(url_for('customer_work_details', id=id))
 
   return render_template(
@@ -1089,7 +1095,17 @@ def fix_work_detail(work_id):
 
 @db.event.listens_for(WorkDetail, "before_insert")
 def validate_work_detail(mapper, connection, target):
-    if target.category.type.lower() == 'outflow' and target.method not in ('CASH', 'BANK'):
+    if not target.category_id:
+        raise ValueError("Category is required")
+
+    category_type = connection.execute(
+        select(Category.type).where(Category.id == target.category_id)
+    ).scalar_one_or_none()
+
+    if not category_type:
+        raise ValueError("Invalid category")
+
+    if category_type.upper() == 'OUTFLOW' and target.method.upper() not in ('CASH', 'BANK'):
         raise ValueError("Outflow must be CASH or BANK")
 
 if __name__ == '__main__':

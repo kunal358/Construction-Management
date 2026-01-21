@@ -137,6 +137,17 @@
     </header>
 
     <span></span>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div>
+        {% for category, message in messages %}
+          <div role="alert">
+            <strong style="color:red;">{{ message }}</strong>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% endwith %}
     <div class="summary-work">
       <h2>Add Work Detail for Customers</h2>
       <form class="form-row" method="POST" action="{{ url_for('company_expense_work_details') }}">
@@ -287,18 +298,6 @@
         </form>
     </section>
     </div>
-
-      {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div>
-          {% for category, message in messages %}
-            <div role="alert">
-              <strong>{{ message }}</strong>
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-      {% endwith %}
   </div>
 <script>
     function confirmDelete(button) {

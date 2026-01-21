@@ -1,0 +1,444 @@
+/* ---------- Global ---------- */
+* {
+    box-sizing: border-box;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #f4f6f9;
+    color: #333;
+}
+
+/* ---------- Page Container ---------- */
+.container {
+    max-width: 1400px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+/* ---------- Headings ---------- */
+h1, h2, h3 {
+    margin: 0 0 15px 0;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.page-title {
+    font-size: 28px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
+
+/* ---------- Navigation ---------- */
+.navigation {
+    background: #1f2937;
+    padding: 12px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.navigation a {
+    color: #e5e7eb;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.navigation a:hover {
+    background: #374151;
+}
+
+
+/* ---------- Cards ---------- */
+.card {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+
+/* Form Container */
+.form-container {
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #f9f9fb; /* Light gray form background */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.form-container h2 {
+    margin-top: 0;
+    font-size: 18px;
+    color: #555;
+}
+
+.form-container input,
+.form-container select {
+    width: calc(100% - 20px); /* Full width minus padding */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.form-container button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    color: #ffffff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-container button:hover {
+    background-color: #0056b3; /* Darker blue */
+}
+/* ---------- Forms ---------- */
+.form-row,
+.form-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+input[type="text"],
+input[type="date"],
+select {
+    padding: 8px 10px;
+    border: 1px solid #cfd8dc;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 160px;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+/* ---------- Buttons ---------- */
+button,
+.button {
+    padding: 8px 14px;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+button:hover,
+.button:hover {
+    background: #1e40af;
+}
+
+
+/* Category and Subcategory Cards */
+.category-card {
+    margin-bottom: 20px;
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.category-header span {
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+}
+
+.subcategory-list {
+    margin-top: 10px;
+}
+
+.subcategory-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.subcategory-item span {
+    font-size: 16px;
+    color: #555;
+}
+
+button.edit-btn,
+button.delete-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button.edit-btn {
+    background-color: #ffc107; /* Yellow */
+    color: #333;
+}
+
+button.edit-btn:hover {
+    background-color: #e0a800; /* Darker yellow */
+}
+
+button.delete-btn {
+    background-color: #dc3545; /* Red */
+    color: #fff;
+}
+
+button.delete-btn:hover {
+    background-color: #c82333; /* Darker red */
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+table th,
+table td {
+    padding: 10px 15px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+table th {
+    background-color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Buttons for Tables */
+table .btn {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+table .btn-edit {
+    background-color: #007bff;
+    color: #fff;
+}
+
+table .btn-edit:hover {
+    background-color: #0056b3;
+}
+
+table .btn-delete {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+table .btn-delete:hover {
+    background-color: #c82333;
+}
+
+
+/* ---------- Tables ---------- */
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.styled-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f1f5f9;
+    padding: 10px;
+    border-bottom: 2px solid #e5e7eb;
+    text-align: left;
+    z-index: 1;
+}
+
+.styled-table tbody td {
+    padding: 10px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.styled-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+/* Scrollable body */
+.table-scroll {
+    max-height: 260px;
+    overflow-y: auto;
+    border-radius: 6px;
+}
+
+.money-positive {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.money-negative {
+    color: #b91c1c;
+    font-weight: 600;
+}
+
+
+/* Header */
+.dashboard-title {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Summary Section */
+.summary {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.summary h2 {
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.summary-details p {
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+/* Search Section */
+.customer-search {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.search-box {
+    display: inline-block;
+    margin: 10px auto;
+}
+
+.search-box input[type="text"] {
+    width: 250px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.search-box button {
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.search-box button:hover {
+    background-color: #0056b3;
+}
+
+/* Table Styles */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    text-align: left;
+}
+
+.table th, .table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.table th {
+    background-color: #f4f4f9;
+    font-weight: bold;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Buttons */
+.btn {
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.tooltip {
+    background: #ecfeff;
+    border: 1px solid #67e8f9;
+    color: #155e75;
+}
+
+.alert {
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.alert-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+

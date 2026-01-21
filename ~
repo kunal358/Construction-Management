@@ -1,0 +1,9 @@
+-- To query table
+sqlite2 construction.db
+
+sqlite> .table
+category       customer_file  subcategory  
+customer       expense        work_detail 
+
+
+

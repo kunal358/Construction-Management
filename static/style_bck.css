@@ -1,0 +1,322 @@
+/* General Styles */
+body {
+    font-family: 'Roboto', Arial, sans-serif; /* Modern font */
+    margin: 0;
+    color: #333;
+    padding: 10px 80px;
+    background-color: #f0f2f5; /* Softer background */
+}
+
+.container {
+    text-align: left;
+    float: center;
+    width: 85%; /* Responsive width */
+    max-width: 85%; /* Limit max width */
+    margin: 20px auto;
+    padding: 40px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Enhanced shadow */
+    margin-bottom: 15px; 
+}
+
+/* Navigation Bar */
+.navigation {
+    display: flex;
+    justify-content: center; /* Center align navigation items */
+    gap: 15px; /* Space between links */
+    margin: 20px 0;
+    background-color: #f0f2f5; /* Softer background */
+    padding: 10px 15px; /* Add padding for spacing */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.navigation a {
+    display: inline-block;
+    padding: 8px 20px; /* Adjust padding for better spacing */
+    color: #0056b3; /* Softer blue for link text */
+    text-decoration: none;
+    font-size: 14px; /* Adjust text size */
+    font-weight: bold;
+    background-color: #ffffff; /* White button background */
+    border: 1px solid #0056b3; /* Blue border */
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.navigation a:hover {
+    background-color: #0056b3; /* Blue background on hover */
+    color: #ffffff; /* White text on hover */
+}
+
+
+/* Form Container */
+.form-container {
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #f9f9fb; /* Light gray form background */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.form-container h2 {
+    margin-top: 0;
+    font-size: 18px;
+    color: #555;
+}
+
+.form-container input,
+.form-container select {
+    width: calc(100% - 20px); /* Full width minus padding */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.form-container button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    color: #ffffff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-container button:hover {
+    background-color: #0056b3; /* Darker blue */
+}
+
+/* Category and Subcategory Cards */
+.category-card {
+    margin-bottom: 20px;
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.category-header span {
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+}
+
+.subcategory-list {
+    margin-top: 10px;
+}
+
+.subcategory-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.subcategory-item span {
+    font-size: 16px;
+    color: #555;
+}
+
+button.edit-btn,
+button.delete-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button.edit-btn {
+    background-color: #ffc107; /* Yellow */
+    color: #333;
+}
+
+button.edit-btn:hover {
+    background-color: #e0a800; /* Darker yellow */
+}
+
+button.delete-btn {
+    background-color: #dc3545; /* Red */
+    color: #fff;
+}
+
+button.delete-btn:hover {
+    background-color: #c82333; /* Darker red */
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+table th,
+table td {
+    padding: 10px 15px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+table th {
+    background-color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Buttons for Tables */
+table .btn {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+table .btn-edit {
+    background-color: #007bff;
+    color: #fff;
+}
+
+table .btn-edit:hover {
+    background-color: #0056b3;
+}
+
+table .btn-delete {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+table .btn-delete:hover {
+    background-color: #c82333;
+}
+
+
+
+/* Header */
+.dashboard-title {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Summary Section */
+.summary {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.summary h2 {
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.summary-details p {
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+/* Search Section */
+.customer-search {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.search-box {
+    display: inline-block;
+    margin: 10px auto;
+}
+
+.search-box input[type="text"] {
+    width: 250px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.search-box button {
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.search-box button:hover {
+    background-color: #0056b3;
+}
+
+/* Table Styles */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    text-align: left;
+}
+
+.table th, .table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.table th {
+    background-color: #f4f4f9;
+    font-weight: bold;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Buttons */
+.btn {
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+
