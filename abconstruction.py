@@ -167,6 +167,29 @@ def dashboard():
       })
       raise ValueError(f"Total profit does not match")
 
+    last_entry = (
+      db.session.query(WorkDetail)
+      .order_by(desc(WorkDetail.id))   # safest if ID is auto-increment
+      .first()
+    )
+    if last_entry:
+      customer = db.session.get(Customer, last_entry.customer_id)
+      category = db.session.get(Category, last_entry.category_id)
+      subcategory = db.session.get(Subcategory, last_entry.subcategory_id)
+
+      last_entry_data = {
+          "date": last_entry.date,
+          "customer_name": customer.full_name if customer else "Unknown",
+          "category": category.name if category else "Unknown",
+          "subcategory": subcategory.name if subcategory else "N/A",
+          "amount": last_entry.amount,
+          "method": last_entry.method,
+          "description": last_entry.description,
+          "cust_id": last_entry.customer_id
+    }
+    else:
+      last_entry_data = None
+
   except Exception as e:
     print(f"Error calculating total: {e}")
 
@@ -198,7 +221,8 @@ def dashboard():
       search_results=search_results,
       search_query=search_query,
       integrity_issues=integrity_issues,
-      has_integrity_issues=has_integrity_issues
+      has_integrity_issues=has_integrity_issues,
+      last_entry=last_entry_data
   )
 
 @app.route('/categories', methods=['GET', 'POST'])

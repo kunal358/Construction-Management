@@ -103,6 +103,36 @@
     </div>
   </section>
 
+  {% if last_entry %}
+  <section class="summary">
+    <h2>Last Entry Details</h2>
+    <div class="summary-details">
+      <table class="table-container">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Customer Name</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ last_entry.date.strftime('%d-%m-%Y') }}</td>
+            <td>{{ last_entry.customer_name }}</td>
+            <td>{{ last_entry.category }} - {{ last_entry.subcategory }}</td>
+            <td>{{ last_entry.amount }}</td>
+            <td>{{ last_entry.method }}</td>
+            <td><a href="{{ url_for('customer_work_details', id=last_entry.cust_id) }}" class="btn btn-primary">Click Here</a> </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
   <!-- Customer Search -->
   <section class="customer-search">
     <h2>Search Customer</h2>
