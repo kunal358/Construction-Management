@@ -337,7 +337,7 @@
           <select name="category" id="export_category">
             <option value="all">All Categories</option>
             {% for category in expense_categories %}
-              <option value="{{ category }}">{{ category }}</option>
+              <option value="{{ category.value }}">{{ category.label }}</option>
             {% endfor %}
           </select>
         </div>
