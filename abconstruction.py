@@ -850,9 +850,16 @@ def export_expenses_pdf():
     try:
         start_date_raw = request.args.get('start_date') or ''
         end_date_raw = request.args.get('end_date') or ''
+        category_raw = (request.args.get('category') or 'all').strip()
 
         query = Expense.query
         criteria = []
+
+        if category_raw and category_raw.lower() != 'all':
+            query = query.filter(Expense.category == category_raw)
+            criteria.append(f"Category: {category_raw}")
+        else:
+            criteria.append("Category: All")
 
         if start_date_raw:
             start_date = datetime.strptime(start_date_raw, '%Y-%m-%d').date()
@@ -884,7 +891,8 @@ def export_expenses_pdf():
 
         pdf = _new_report_pdf("AB Construction - Internal Expense Report", "Company expense export")
         _section_title(pdf, "Export Criteria")
-        _detail_line(pdf, "Filters", ", ".join(criteria) if criteria else "All internal expense entries")
+        _detail_line(pdf, "Grouping", "Category wise")
+        _detail_line(pdf, "Filters", ", ".join(criteria))
         _detail_line(pdf, "Records", len(expenses))
 
         _section_title(pdf, "Expense Summary")
