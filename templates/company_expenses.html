@@ -79,7 +79,7 @@
     
     .styled-table thead th {
         position: sticky;
-        top: 46px;
+        top: 0;
         background-color: var(--brand-blue-dark);
         color: #ffffff;
         z-index: 2;
@@ -95,7 +95,7 @@
     }                                                                           
     table th {                                                                  
         position: sticky;                                                       
-        top: 46px;                                                                 
+        top: 0;
         background: var(--brand-blue-dark);
         color: #ffffff;
         z-index: 2;                                                             
@@ -141,6 +141,11 @@
       background: #f9f9f9;
       border-bottom: 1px solid var(--line);
       box-shadow: 0 -22px 0 22px #f9f9f9;
+    }
+    .summary-record-container .scrollable-content {
+      margin-top: 0;
+      max-height: 238px;
+      overflow: auto;
     }
     </style>
 </head>
