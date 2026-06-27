@@ -17,118 +17,156 @@
   </div>
   {% endif %}
 
-  <!-- Summary Section -->
-  <section class="summary">
-    <h2>Overall Cash Flow[Customers]</h2>
-    <div class="summary-details">
-      <table class="table-container">
-        <thead>
-          <tr>
-            <th>Source</th>
-            <th>Inflow Amount</th>
-            <th>Outflow Amount</th>
-            <th>Remaining</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td> <p><strong>Cash</strong></p></td>
-            <td class="money-positive"> <p>₹ {{ total_inflow_cash }}</p></td>
-            <td class="money-negative"> <p>₹ {{ total_outflow_cash }}</p></td>
-            <td class="money-positive"> <p><strong>₹ {{ total_inflow_cash - total_outflow_cash }}</strong></p></td>
-          </tr>
-            <td> <p><strong>Bank</strong></p></td>
-            <td class="money-positive"> <p>₹ {{ total_inflow_bank }}</p></td>
-            <td class="money-negative"> <p>₹ {{ total_outflow_bank }}</p></td>
-            <td class="money-positive"> <p><strong>₹ {{ total_inflow_bank - total_outflow_bank }}</strong></p></td>
-          </tr>
-          </tr>
-            <td> <p><strong>Total</strong></p></td>
-            <td class="money-positive"> <p><strong>₹ {{ total_inflow }}</strong></p></td>
-            <td class="money-negative"> <p><strong>₹ {{ total_outflow }}</strong></p></td>
-            <td class="money-positive"> <p><strong>₹ {{ total_inflow - total_outflow }}</strong></p></td>
-          </tr>
-        </tbody>
-      </table>
+  <div class="metric-grid dashboard-top-metrics">
+    <div class="metric-card">
+      <span>Cash In Hand</span>
+      <strong>₹ {{ cash_in_hand }}</strong>
+    </div>
+    <div class="metric-card">
+      <span>Cash In Bank</span>
+      <strong>₹ {{ bank_balance }}</strong>
+    </div>
+    <div class="metric-card">
+      <span>Overall Profit</span>
+      <strong>₹ {{ profit }}</strong>
+    </div>
+    <div class="metric-card metric-card-danger">
+      <span>Internal Expenses</span>
+      <strong>₹ {{ total_internal_exp }}</strong>
+    </div>
+  </div>
+
+  <section class="dashboard-panel-grid">
+    <div class="insight-panel cash-flow-panel">
+      <div class="panel-heading">
+        <h2>Customer Cash Flow</h2>
+      </div>
+      <div class="flow-list">
+        <div class="flow-row">
+          <span>Cash</span>
+          <div><small>Inflow</small><strong class="money-positive">₹ {{ total_inflow_cash }}</strong></div>
+          <div><small>Outflow</small><strong class="money-negative">₹ {{ total_outflow_cash }}</strong></div>
+          <div><small>Remaining</small><strong class="money-positive">₹ {{ total_inflow_cash - total_outflow_cash }}</strong></div>
+        </div>
+        <div class="flow-row">
+          <span>Bank</span>
+          <div><small>Inflow</small><strong class="money-positive">₹ {{ total_inflow_bank }}</strong></div>
+          <div><small>Outflow</small><strong class="money-negative">₹ {{ total_outflow_bank }}</strong></div>
+          <div><small>Remaining</small><strong class="money-positive">₹ {{ total_inflow_bank - total_outflow_bank }}</strong></div>
+        </div>
+        <div class="flow-row flow-row-total">
+          <span>Total</span>
+          <div><small>Inflow</small><strong class="money-positive">₹ {{ total_inflow }}</strong></div>
+          <div><small>Outflow</small><strong class="money-negative">₹ {{ total_outflow }}</strong></div>
+          <div><small>Remaining</small><strong class="money-positive">₹ {{ total_inflow - total_outflow }}</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-panel internal-flow-panel">
+      <div class="panel-heading">
+        <h2>Internal Cash Flow</h2>
+      </div>
+      <div class="mini-metric-grid">
+        <div class="mini-metric">
+          <span>Cash Outflow</span>
+          <strong class="money-negative">₹ {{ total_internal_exp_cash }}</strong>
+        </div>
+        <div class="mini-metric">
+          <span>Bank Outflow</span>
+          <strong class="money-negative">₹ {{ total_internal_exp_bank }}</strong>
+        </div>
+        <div class="mini-metric">
+          <span>Total Outflow</span>
+          <strong class="money-negative">₹ {{ total_internal_exp }}</strong>
+        </div>
+        <div class="mini-metric">
+          <span>Cash Withdrawn</span>
+          <strong class="money-positive">₹ {{ total_withdraw_cash }}</strong>
+        </div>
+        <div class="mini-metric">
+          <span>Cash Deposited</span>
+          <strong class="money-positive">₹ {{ total_deposit_cash }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-panel funds-panel">
+      <div class="panel-heading">
+        <h2>Available Funds</h2>
+      </div>
+      <div class="funds-strip">
+        <div>
+          <span>Cash In Hand</span>
+          <strong class="money-positive">₹ {{ cash_in_hand }}</strong>
+        </div>
+        <div>
+          <span>Cash In Bank</span>
+          <strong class="money-positive">₹ {{ bank_balance }}</strong>
+        </div>
+        <div>
+          <span>Overall Profit</span>
+          <strong class="money-positive">₹ {{ profit }}</strong>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- Summary Section -->
-  <section class="summary">
-    <h2>Overall Cash Flow[Internal]</h2>
-    <div class="summary-details">
-      <table class="table-container">
-        <thead>
-          <tr>
-            <th>Outflow[Cash]</th>
-            <th>Outflow[Bank]</th>
-            <th>Total Outflow</th>
-            <th>Total Cash Withdrawl</th>
-            <th>Total Cash Deposit</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="money-negative"> <p>₹ {{ total_internal_exp_cash }}</p></td>
-            <td class="money-negative"> <p>₹ {{ total_internal_exp_bank }}</p></td>
-            <td class="money-negative"> <p><strong>₹ {{ total_internal_exp }}</strong></p></td>
-            <td class="money-positive"> <p>₹ {{ total_withdraw_cash }}</p></td>
-            <td class="money-positive"> <p>₹ {{ total_deposit_cash }}</p></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+  <section class="dashboard-insights">
+    <div class="dashboard-visual-grid">
+      <div class="insight-panel money-movement-panel">
+        <div class="panel-heading">
+          <h2>Money Movement</h2>
+        </div>
+        <div class="donut-layout">
+          <canvas id="moneyMovementChart" width="220" height="220" aria-label="Money movement donut chart"></canvas>
+          <div id="moneyMovementLegend" class="chart-legend"></div>
+        </div>
+      </div>
 
-  <!-- Summary Section -->
-  <section class="summary">
-    <h2>Available Funds</h2>
-    <div class="summary-details">
-      <table class="table-container">
-        <thead>
-          <tr>
-            <th>Cash In Hand</th>
-            <th>Cash In Bank</th>
-            <th>Overall Profit</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="money-positive"> <p><strong>₹ {{ cash_in_hand }}</strong></p></td>
-            <td class="money-positive"> <p><strong>₹ {{ bank_balance }}</strong></p></td>
-            <td class="money-positive"> <p><strong>₹ {{ profit }}</strong></p></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="insight-panel">
+        <div class="panel-heading">
+          <h2>Top Internal Expenses</h2>
+        </div>
+        <div id="internalExpenseBars" class="bar-list"></div>
+      </div>
+
+      <div class="insight-panel">
+        <div class="panel-heading">
+          <h2>Top Customer Outflows</h2>
+        </div>
+        <div id="customerOutflowBars" class="bar-list"></div>
+      </div>
     </div>
   </section>
 
   {% if last_entry %}
-  <section class="summary">
-    <h2>Last Entry Details</h2>
-    <div class="summary-details">
-      <table class="table-container">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Customer Name</th>
-            <th>Category</th>
-            <th>Amount</th>
-            <th>Method</th>
-            <th>Link</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{{ last_entry.date.strftime('%d-%m-%Y') }}</td>
-            <td>{{ last_entry.customer_name }}</td>
-            <td>{{ last_entry.category }} - {{ last_entry.subcategory }}</td>
-            <td>{{ last_entry.amount }}</td>
-            <td>{{ last_entry.method }}</td>
-            <td><a href="{{ url_for('customer_work_details', id=last_entry.cust_id) }}" class="btn btn-primary">Click Here</a> </td>
-          </tr>
-        </tbody>
-      </table>
+  <section class="insight-panel recent-entry-panel">
+    <div class="panel-heading">
+      <h2>Last Entry Details</h2>
+    </div>
+    <div class="recent-entry">
+      <div>
+        <span>Date</span>
+        <strong>{{ last_entry.date.strftime('%d-%m-%Y') }}</strong>
+      </div>
+      <div>
+        <span>Customer</span>
+        <strong>{{ last_entry.customer_name }}</strong>
+      </div>
+      <div>
+        <span>Category</span>
+        <strong>{{ last_entry.category }} - {{ last_entry.subcategory }}</strong>
+      </div>
+      <div>
+        <span>Amount</span>
+        <strong>₹ {{ last_entry.amount }}</strong>
+      </div>
+      <div>
+        <span>Method</span>
+        <strong>{{ last_entry.method }}</strong>
+      </div>
+      <a href="{{ url_for('customer_work_details', id=last_entry.cust_id) }}" class="btn btn-primary">Open</a>
     </div>
   </section>
   {% endif %}
@@ -169,5 +207,109 @@
     {% endif %}
   </section>
   </div>
-{% endblock %}
+  <script id="dashboardChartData" type="application/json">{{ dashboard_chart_data|tojson }}</script>
+  <script>
+    (function () {
+      const dataElement = document.getElementById('dashboardChartData');
+      if (!dataElement) return;
 
+      const chartData = JSON.parse(dataElement.textContent || '{}');
+      const currency = new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0
+      });
+      const compactCurrency = new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        notation: 'compact',
+        maximumFractionDigits: 1
+      });
+
+      function drawDonut(canvasId, legendId, items) {
+        const canvas = document.getElementById(canvasId);
+        const legend = document.getElementById(legendId);
+        if (!canvas || !legend) return;
+
+        const ctx = canvas.getContext('2d');
+        const total = items.reduce((sum, item) => sum + Math.max(Number(item.value || 0), 0), 0);
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        const radius = Math.min(cx, cy) - 12;
+        const innerRadius = radius * 0.58;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (!total) {
+          ctx.fillStyle = '#e7f3f8';
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+          ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2, true);
+          ctx.fill();
+        } else {
+          let startAngle = -Math.PI / 2;
+          items.forEach((item) => {
+            const value = Math.max(Number(item.value || 0), 0);
+            const angle = (value / total) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.fillStyle = item.color;
+            ctx.arc(cx, cy, radius, startAngle, startAngle + angle);
+            ctx.closePath();
+            ctx.fill();
+            startAngle += angle;
+          });
+
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.beginPath();
+          ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalCompositeOperation = 'source-over';
+        }
+
+        ctx.fillStyle = '#0f4963';
+        ctx.font = '700 16px Inter, Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(compactCurrency.format(total), cx, cy + 5);
+
+        legend.innerHTML = items.map((item) => `
+          <div class="legend-item">
+            <span class="legend-swatch" style="background:${item.color}"></span>
+            <span>${item.label}</span>
+            <strong>${currency.format(Number(item.value || 0))}</strong>
+          </div>
+        `).join('');
+      }
+
+      function renderBars(targetId, items) {
+        const target = document.getElementById(targetId);
+        if (!target) return;
+
+        const max = Math.max(...items.map((item) => Number(item.value || 0)), 0);
+        if (!items.length || !max) {
+          target.innerHTML = '<div class="empty-chart-state">No records yet</div>';
+          return;
+        }
+
+        target.innerHTML = items.map((item) => {
+          const value = Number(item.value || 0);
+          const width = Math.max((value / max) * 100, 4);
+          return `
+            <div class="bar-row">
+              <div class="bar-label">
+                <span>${item.label}</span>
+                <strong>${currency.format(value)}</strong>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" style="width:${width}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      drawDonut('moneyMovementChart', 'moneyMovementLegend', chartData.movement || []);
+      renderBars('internalExpenseBars', chartData.internalCategories || []);
+      renderBars('customerOutflowBars', chartData.customerOutflowCategories || []);
+    })();
+  </script>
+{% endblock %}

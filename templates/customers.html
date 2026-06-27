@@ -124,10 +124,16 @@
 <body>
   <!-- Navigation -->
   <div class="navigation">
-    <a href="{{ url_for('dashboard') }}">Home</a>
-    <a href="{{ url_for('manage_customers') }}">Manage Customers</a>
-    <a href="{{ url_for('manage_expenses') }}">Internal Expenses</a>
-    <a href="{{ url_for('manage_categories') }}">Manage Categories</a>
+    <a href="{{ url_for('dashboard') }}" class="brand-link" aria-label="AB Construction dashboard">
+      <img src="{{ url_for('static', filename='images/ab-construction-logo.png') }}" alt="AB Construction">
+      <span>AB Construction</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a href="{{ url_for('dashboard') }}">Home</a>
+      <a href="{{ url_for('manage_customers') }}">Customers</a>
+      <a href="{{ url_for('manage_expenses') }}">Internal Expenses</a>
+      <a href="{{ url_for('manage_categories') }}">Categories</a>
+    </nav>
   </div>
 
   <div class="container">
@@ -206,5 +212,4 @@
   </div>
 </body>
 </html>
-
 

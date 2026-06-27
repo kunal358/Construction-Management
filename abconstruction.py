@@ -9,6 +9,119 @@ import pytz
 from werkzeug.utils import secure_filename
 from fpdf import FPDF
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PDF_LOGO_PATH = os.path.join(BASE_DIR, "static", "images", "ab-construction-logo.png")
+BRAND_BLUE = (23, 111, 159)
+BRAND_BLUE_DARK = (15, 73, 99)
+BRAND_BLUE_SOFT = (231, 243, 248)
+SUCCESS_GREEN = (21, 128, 61)
+DANGER_RED = (180, 35, 24)
+TEXT_DARK = (23, 33, 43)
+TEXT_MUTED = (102, 112, 133)
+LINE_GREY = (217, 226, 234)
+
+def _safe_pdf_text(value):
+    return str(value if value is not None else "").encode("latin-1", "replace").decode("latin-1")
+
+def _money(value):
+    return f"Rs. {(value or 0):,.2f}"
+
+def _new_report_pdf(title, subtitle=None):
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=18)
+    pdf.add_page()
+    pdf.set_draw_color(*LINE_GREY)
+    pdf.set_text_color(*TEXT_DARK)
+
+    pdf.set_fill_color(*BRAND_BLUE_DARK)
+    pdf.rect(0, 0, 210, 34, "F")
+    if os.path.exists(PDF_LOGO_PATH):
+        pdf.image(PDF_LOGO_PATH, x=12, y=7, w=34)
+
+    pdf.set_xy(52, 8)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(0, 8, _safe_pdf_text(title), 0, 1, "L")
+    if subtitle:
+        pdf.set_x(52)
+        pdf.set_font("Arial", "", 10)
+        pdf.cell(0, 6, _safe_pdf_text(subtitle), 0, 1, "L")
+
+    pdf.set_y(42)
+    pdf.set_text_color(*TEXT_DARK)
+    return pdf
+
+def _section_title(pdf, title):
+    if pdf.get_y() > 250:
+        pdf.add_page()
+    pdf.ln(3)
+    pdf.set_fill_color(*BRAND_BLUE)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Arial", "B", 11)
+    pdf.cell(0, 8, _safe_pdf_text(title), 0, 1, "L", True)
+    pdf.set_text_color(*TEXT_DARK)
+    pdf.ln(2)
+
+def _detail_line(pdf, label, value):
+    pdf.set_font("Arial", "B", 10)
+    pdf.set_text_color(*BRAND_BLUE_DARK)
+    pdf.cell(32, 7, _safe_pdf_text(label), 0, 0, "L")
+    pdf.set_font("Arial", "", 10)
+    pdf.set_text_color(*TEXT_DARK)
+    pdf.multi_cell(0, 7, _safe_pdf_text(value), 0, "L")
+
+def _draw_table(pdf, headers, rows, col_widths, aligns=None, highlight_last=False):
+    aligns = aligns or ["L"] * len(headers)
+    row_h = 8
+
+    def draw_header():
+        pdf.set_fill_color(*BRAND_BLUE_DARK)
+        pdf.set_text_color(255, 255, 255)
+        pdf.set_font("Arial", "B", 9)
+        for i, header in enumerate(headers):
+            pdf.cell(col_widths[i], row_h, _safe_pdf_text(header), 1, 0, aligns[i], True)
+        pdf.ln(row_h)
+        pdf.set_text_color(*TEXT_DARK)
+
+    draw_header()
+    pdf.set_font("Arial", "", 9)
+    for row_index, row in enumerate(rows):
+        if pdf.get_y() > 270:
+            pdf.add_page()
+            draw_header()
+            pdf.set_font("Arial", "", 9)
+
+        is_last = highlight_last and row_index == len(rows) - 1
+        fill = row_index % 2 == 0 or is_last
+        if is_last:
+            pdf.set_fill_color(231, 243, 248)
+            pdf.set_font("Arial", "B", 9)
+        else:
+            pdf.set_fill_color(248, 251, 253)
+            pdf.set_font("Arial", "", 9)
+
+        for i, value in enumerate(row):
+            pdf.cell(col_widths[i], row_h, _safe_pdf_text(value), 1, 0, aligns[i], fill)
+        pdf.ln(row_h)
+    pdf.set_font("Arial", "", 9)
+    pdf.ln(3)
+
+def _report_footer(pdf, report_generated_at):
+    pdf.ln(4)
+    pdf.set_draw_color(*LINE_GREY)
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(3)
+    pdf.set_font("Arial", "", 8)
+    pdf.set_text_color(*TEXT_MUTED)
+    pdf.cell(0, 6, _safe_pdf_text(f"Report generated at: {report_generated_at}"), 0, 1, "R")
+    pdf.set_text_color(*TEXT_DARK)
+
+def _pdf_response(pdf, filename):
+    pdf_data = bytes(pdf.output(dest='S').encode('latin-1'))
+    response = Response(pdf_data, mimetype='application/pdf')
+    response.headers['Content-Disposition'] = f'attachment;filename={filename}'
+    return response
+
 # Initialize Database
 def setup_database():
   if not os.path.exists('./instance/construction.db'):
@@ -67,6 +180,11 @@ def delete_work_detail(customer_id, work_id):
 @app.route('/')
 def dashboard():
   issues = []
+  dashboard_chart_data = {
+      "movement": [],
+      "internalCategories": [],
+      "customerOutflowCategories": [],
+  }
   try:
     total_outflow = (
         db.session.query(db.func.sum(WorkDetail.amount))
@@ -167,6 +285,41 @@ def dashboard():
       })
       raise ValueError(f"Total profit does not match")
 
+    top_internal_categories = (
+      db.session.query(Expense.category, db.func.sum(Expense.amount).label('total'))
+      .filter(~Expense.method.ilike('None'))
+      .group_by(Expense.category)
+      .order_by(desc('total'))
+      .limit(5)
+      .all()
+    )
+
+    top_customer_outflow_categories = (
+      db.session.query(Category.name, db.func.sum(WorkDetail.amount).label('total'))
+      .join(WorkDetail, WorkDetail.category_id == Category.id)
+      .filter(Category.type.ilike('outflow'))
+      .group_by(Category.name)
+      .order_by(desc('total'))
+      .limit(5)
+      .all()
+    )
+
+    dashboard_chart_data = {
+      "movement": [
+        {"label": "Customer Inflow", "value": float(total_inflow or 0), "color": "#15803d"},
+        {"label": "Customer Outflow", "value": float(total_outflow or 0), "color": "#b42318"},
+        {"label": "Internal Expenses", "value": float(total_internal_exp or 0), "color": "#176f9f"},
+      ],
+      "internalCategories": [
+        {"label": category or "Uncategorized", "value": float(total or 0)}
+        for category, total in top_internal_categories
+      ],
+      "customerOutflowCategories": [
+        {"label": category or "Uncategorized", "value": float(total or 0)}
+        for category, total in top_customer_outflow_categories
+      ],
+    }
+
     last_entry = (
       db.session.query(WorkDetail)
       .order_by(desc(WorkDetail.id))   # safest if ID is auto-increment
@@ -222,7 +375,8 @@ def dashboard():
       search_query=search_query,
       integrity_issues=integrity_issues,
       has_integrity_issues=has_integrity_issues,
-      last_entry=last_entry_data
+      last_entry=last_entry_data,
+      dashboard_chart_data=dashboard_chart_data
   )
 
 @app.route('/categories', methods=['GET', 'POST'])
@@ -603,6 +757,7 @@ def get_expense_method(expense_category):
 def manage_expenses():
     customers = Customer.query.all()
     categories = Category.query.all()
+    expense_categories = load_expense_categories_from_file()
     if request.method == 'POST':
         date = request.form.get('date')
         category = request.form.get('category')
@@ -625,7 +780,109 @@ def manage_expenses():
                      .scalar() or 0
                     )
 
-    return render_template('company_expenses.html', expenses=expenses, summary=summary, total_outflow=total_outflow, customers=customers, categories=categories)
+    return render_template('company_expenses.html', expenses=expenses, summary=summary, total_outflow=total_outflow, customers=customers, categories=categories, expense_categories=expense_categories)
+
+@app.route('/company_expenses/export_pdf', methods=['GET'])
+def export_expenses_pdf():
+    try:
+        start_date_raw = request.args.get('start_date') or ''
+        end_date_raw = request.args.get('end_date') or ''
+
+        query = Expense.query
+        criteria = []
+
+        if start_date_raw:
+            start_date = datetime.strptime(start_date_raw, '%Y-%m-%d').date()
+            query = query.filter(Expense.date >= start_date)
+            criteria.append(f"From: {start_date.strftime('%d-%m-%Y')}")
+
+        if end_date_raw:
+            end_date = datetime.strptime(end_date_raw, '%Y-%m-%d').date()
+            query = query.filter(Expense.date <= end_date)
+            criteria.append(f"To: {end_date.strftime('%d-%m-%Y')}")
+
+        expenses = query.order_by(desc(Expense.date)).all()
+        if not expenses:
+            flash('No internal expense records found for selected export criteria.', 'danger')
+            return redirect(url_for('manage_expenses'))
+
+        total_amount = sum(expense.amount or 0 for expense in expenses)
+        total_outflow = sum(expense.amount or 0 for expense in expenses if (expense.method or '').lower() != 'none')
+        category_totals = {}
+        method_totals = {}
+        for expense in expenses:
+            category_totals[expense.category] = category_totals.get(expense.category, 0) + (expense.amount or 0)
+            method_name = expense.method or 'N/A'
+            method_totals[method_name] = method_totals.get(method_name, 0) + (expense.amount or 0)
+
+        ist_offset = timedelta(hours=5, minutes=30)
+        ist_now = datetime.now(timezone.utc) + ist_offset
+        report_generated_at = ist_now.strftime("%d-%m-%Y %H:%M:%S")
+
+        pdf = _new_report_pdf("AB Construction - Internal Expense Report", "Company expense export")
+        _section_title(pdf, "Export Criteria")
+        _detail_line(pdf, "Filters", ", ".join(criteria) if criteria else "All internal expense entries")
+        _detail_line(pdf, "Records", len(expenses))
+
+        _section_title(pdf, "Expense Summary")
+        _draw_table(
+            pdf,
+            ["Metric", "Amount"],
+            [
+                ["Total Amount", _money(total_amount)],
+                ["Total Outflow", _money(total_outflow)],
+            ],
+            [95, 95],
+            ["L", "R"],
+            highlight_last=True,
+        )
+
+        _section_title(pdf, "Category Summary")
+        _draw_table(
+            pdf,
+            ["Category", "Total Amount"],
+            [[name, _money(amount)] for name, amount in sorted(category_totals.items())],
+            [118, 72],
+            ["L", "R"],
+        )
+
+        _section_title(pdf, "Method Summary")
+        _draw_table(
+            pdf,
+            ["Method", "Total Amount"],
+            [[name, _money(amount)] for name, amount in sorted(method_totals.items())],
+            [118, 72],
+            ["L", "R"],
+        )
+
+        _section_title(pdf, "Expense Details")
+        detail_rows = []
+        for expense in expenses:
+            detail_rows.append([
+                expense.date.strftime('%d-%m-%Y') if expense.date else '',
+                expense.category,
+                _money(expense.amount),
+                expense.method or 'N/A',
+                (expense.description or 'N/A')[:38],
+            ])
+        detail_rows.append(["", "Total", _money(total_amount), "", ""])
+        _draw_table(
+            pdf,
+            ["Date", "Category", "Amount", "Method", "Description"],
+            detail_rows,
+            [26, 42, 34, 28, 60],
+            ["L", "L", "R", "L", "L"],
+            highlight_last=True,
+        )
+
+        _report_footer(pdf, report_generated_at)
+        return _pdf_response(pdf, "AB_Construction_Internal_Expenses.pdf")
+    except ValueError:
+        flash('Please select valid export dates.', 'danger')
+        return redirect(url_for('manage_expenses'))
+    except Exception as e:
+        print(f"Error exporting internal expenses: {e}")
+        return jsonify({'error': 'Failed to export internal expenses'}), 500
 
 @app.route('/delete_expense/<int:expense_id>', methods=['POST'])
 def delete_expense(expense_id):
@@ -657,20 +914,12 @@ def export_work_details(customer_id):
         ist_now = datetime.now(timezone.utc) + ist_offset
         report_generated_at = ist_now.strftime("%d-%m-%Y %H:%M:%S")  # Format: DD-MM-YYYY HH:MM:SS
 
-        # Create a PDF object
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", style="B", size=14)
-
-        # Add customer information
-        pdf.cell(0, 10, f"AB Construction - Customer Report", 0, 1, 'C')
-
-        pdf.set_font("Arial", size=12)
-
-        # Add customer information
-        pdf.cell(0, 10, f"Customer Name: {customer.full_name},  Mobile No: {customer.mobile_no}, Email: {customer.email_id or 'N/A'}", 0, 1, 'L')
-        pdf.cell(0, 10, f"Address: {customer.address or 'N/A'}", 0, 1, 'L')
-        pdf.ln(10)
+        pdf = _new_report_pdf("AB Construction - Customer Report", customer.full_name)
+        _section_title(pdf, "Customer Details")
+        _detail_line(pdf, "Name", customer.full_name)
+        _detail_line(pdf, "Mobile", customer.mobile_no)
+        _detail_line(pdf, "Email", customer.email_id or "N/A")
+        _detail_line(pdf, "Address", customer.address or "N/A")
 
         #Outflow
         outflow_total = (
@@ -719,108 +968,72 @@ def export_work_details(customer_id):
         )
 
         profit = inflow_total - outflow_total
-        # Add summary
-        pdf.set_font("Arial", style="B", size=12)
-        pdf.cell(0, 10, f"Overall Summary", 0, 1, 'L')
+        _section_title(pdf, "Overall Summary")
+        _draw_table(
+            pdf,
+            ["Source", "Inflow", "Outflow", "Remaining"],
+            [
+                ["Cash", _money(inflow_cash), _money(outflow_cash), _money(inflow_cash - outflow_cash)],
+                ["Bank", _money(inflow_bank), _money(outflow_bank), _money(inflow_bank - outflow_bank)],
+                ["Total", _money(inflow_total), _money(outflow_total), _money(profit)],
+            ],
+            [32, 48, 48, 48],
+            ["L", "R", "R", "R"],
+            highlight_last=True,
+        )
+        pdf.set_fill_color(*(234, 248, 239) if profit >= 0 else (255, 240, 237))
+        pdf.set_text_color(*(SUCCESS_GREEN if profit >= 0 else DANGER_RED))
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 9, _safe_pdf_text(f"Overall Profit: {_money(profit)}"), 0, 1, "R", True)
+        pdf.set_text_color(*TEXT_DARK)
 
-        # Add table headers
-        headers = ["Source", "Inflow Amount", "Outflow Amount", "Remaining"]
-        col_widths = [25, 40, 40, 30]  # Adjusted column widths
-        for i, header in enumerate(headers):
-            pdf.cell(col_widths[i], 10, header, 1, 0, 'L')
-        pdf.ln(10)
-
-        pdf.cell(col_widths[0], 10, "Cash", 1, 0, 'L')
-        pdf.set_font("Arial", size=12)
-        pdf.cell(col_widths[1], 10, f"{inflow_cash:.2f}", 1, 0, 'L')
-        pdf.cell(col_widths[2], 10, f"{outflow_cash:.2f}", 1, 0, 'L')
-        pdf.cell(col_widths[3], 10, f"{(inflow_cash - outflow_cash):.2f}", 1, 0, 'L')
-        pdf.ln(10)
-        pdf.set_font("Arial", style="B", size=12)
-        pdf.cell(col_widths[0], 10, "Bank", 1, 0, 'L')
-        pdf.set_font("Arial", size=12)
-        pdf.cell(col_widths[1], 10, f"{inflow_bank:.2f}", 1, 0, 'L')
-        pdf.cell(col_widths[2], 10, f"{outflow_bank:.2f}", 1, 0, 'L')
-        pdf.cell(col_widths[3], 10, f"{(inflow_bank - outflow_bank):.2f}", 1, 0, 'L')
-        pdf.ln(10)
-        pdf.set_font("Arial", style="B", size=12)
-        pdf.cell(col_widths[0], 10, "Total", 1, 0, 'L')
-        pdf.set_font("Arial", size=12)
-        pdf.cell(col_widths[1], 10, f"{inflow_total:.2f}", 1, 0, 'L')
-        pdf.cell(col_widths[2], 10, f"{outflow_total:.2f}", 1, 0, 'L')
-        pdf.cell(col_widths[3], 10, f"{(inflow_total - outflow_total):.2f}", 1, 0, 'L')
-        pdf.ln(10)
-
-        pdf.set_font("Arial", style="B", size=12)
-        pdf.cell(0, 10, f"Overall Profit: {profit}", 0, 1, 'L')
-        pdf.set_font("Arial", size=12)
-
-        #Inflow details
-        pdf.ln(10)
-        pdf.set_font("Arial", style="B", size=12)
-        pdf.cell(0, 10, f"Inflow details", 0, 1, 'L')
-        pdf.set_font("Arial", size=12)
-        # Add table headers
-        headers = ["Date", "Category", "Subcategory", "Amount", "Method", "Description"]
-        col_widths = [30, 30, 30, 25, 25, 50]  # Adjusted column widths
-        for i, header in enumerate(headers):
-            pdf.cell(col_widths[i], 10, header, 1, 0, 'L')
-        pdf.ln(10)
-
-        # Add data rows
-        data = (WorkDetail.query
+        _section_title(pdf, "Inflow Details")
+        inflow_details = (WorkDetail.query
                .join(Category, WorkDetail.category_id == Category.id)
                .filter(WorkDetail.customer_id == customer_id, 
                           Category.type.ilike('inflow'))
                .order_by(desc(WorkDetail.date)).all())
 
-        for detail in data:
-            pdf.cell(col_widths[0], 10, detail.date.strftime('%d-%m-%Y') if detail.date else '', 1, 0, 'L')
-            pdf.cell(col_widths[1], 10, detail.category.name if detail.category else '', 1, 0, 'L')
-            pdf.cell(col_widths[2], 10, detail.subcategory.name if detail.subcategory else '', 1, 0, 'L')
-            pdf.cell(col_widths[3], 10, f"{detail.amount:.2f}", 1, 0, 'L')
-            pdf.cell(col_widths[4], 10, detail.method if detail.method else '', 1, 0, 'L')
-            truncated_description = (detail.description or '')[:30] + ('...' if len(detail.description or '') > 30 else '')
-            pdf.cell(col_widths[5], 10, truncated_description, 1, 0, 'L')
-            pdf.ln(10)
+        _draw_table(
+            pdf,
+            ["Date", "Category", "Subcategory", "Amount", "Method", "Description"],
+            [[
+                detail.date.strftime('%d-%m-%Y') if detail.date else '',
+                detail.category.name if detail.category else '',
+                detail.subcategory.name if detail.subcategory else '',
+                _money(detail.amount),
+                detail.method if detail.method else '',
+                ((detail.description or '')[:30] + ('...' if len(detail.description or '') > 30 else '')),
+            ] for detail in inflow_details],
+            [24, 30, 32, 28, 24, 52],
+            ["L", "L", "L", "R", "L", "L"],
+        )
 
         #outflow details
-        pdf.ln(10)
-        pdf.set_font("Arial", style="B", size=12)
-        pdf.cell(0, 10, f"Outflow details", 0, 1, 'L')
-        pdf.set_font("Arial", size=12)
-        # Add table headers
-        headers = ["Date", "Category", "Subcategory", "Amount", "Method", "Description"]
-        col_widths = [30, 30, 30, 25, 25, 50]  # Adjusted column widths
-        for i, header in enumerate(headers):
-            pdf.cell(col_widths[i], 10, header, 1, 0, 'L')
-        pdf.ln(10)
-
-        # Add data rows
-        data = (WorkDetail.query
+        _section_title(pdf, "Outflow Details")
+        outflow_details = (WorkDetail.query
                .join(Category, WorkDetail.category_id == Category.id)
                .filter(WorkDetail.customer_id == customer_id, 
                           Category.type.ilike('outflow'))
                .order_by(desc(WorkDetail.date)).all())
 
-        for detail in data:
-            pdf.cell(col_widths[0], 10, detail.date.strftime('%d-%m-%Y') if detail.date else '', 1, 0, 'L')
-            pdf.cell(col_widths[1], 10, detail.category.name if detail.category else '', 1, 0, 'L')
-            pdf.cell(col_widths[2], 10, detail.subcategory.name if detail.subcategory else '', 1, 0, 'L')
-            pdf.cell(col_widths[3], 10, f"{detail.amount:.2f}", 1, 0, 'L')
-            pdf.cell(col_widths[4], 10, detail.method if detail.method else '', 1, 0, 'L')
-            truncated_description = (detail.description or '')[:30] + ('...' if len(detail.description or '') > 30 else '')
-            pdf.cell(col_widths[5], 10, truncated_description, 1, 0, 'L')
-            pdf.ln(10)
+        _draw_table(
+            pdf,
+            ["Date", "Category", "Subcategory", "Amount", "Method", "Description"],
+            [[
+                detail.date.strftime('%d-%m-%Y') if detail.date else '',
+                detail.category.name if detail.category else '',
+                detail.subcategory.name if detail.subcategory else '',
+                _money(detail.amount),
+                detail.method if detail.method else '',
+                ((detail.description or '')[:30] + ('...' if len(detail.description or '') > 30 else '')),
+            ] for detail in outflow_details],
+            [24, 30, 32, 28, 24, 52],
+            ["L", "L", "L", "R", "L", "L"],
+        )
 
-        pdf.cell(200, 10, txt=f"Report generated at: {report_generated_at}", ln=True, align='R')
-        pdf.ln(10)
-
-        # Output PDF content and ensure it is bytes
-        pdf_data = bytes(pdf.output(dest='S').encode('latin-1'))  # Convert bytearray to bytes
-        response = Response(pdf_data, mimetype='application/pdf')
-        response.headers['Content-Disposition'] = f'attachment;filename={customer.full_name}_{customer.mobile_no}_Record.pdf'
-        return response
+        _report_footer(pdf, report_generated_at)
+        return _pdf_response(pdf, f"{customer.full_name}_{customer.mobile_no}_Record.pdf")
 
     except Exception as e:
         print(f"Error exporting work details: {e}")
@@ -844,49 +1057,38 @@ def export_work_subcat_details(customer_id, category_id, subcategory_id):
         ist_now = datetime.now(timezone.utc) + ist_offset
         report_generated_at = ist_now.strftime("%d-%m-%Y %H:%M:%S")  # Format: DD-MM-YYYY HH:MM:SS
 
-        # Create a PDF object
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", style="B", size=14)
+        pdf = _new_report_pdf("AB Construction Report", customer.full_name)
+        _section_title(pdf, "Customer Details")
+        _detail_line(pdf, "Name", customer.full_name)
+        _detail_line(pdf, "Mobile", customer.mobile_no)
+        _detail_line(pdf, "Email", customer.email_id or "N/A")
+        _detail_line(pdf, "Address", customer.address or "N/A")
 
-        # Add customer information
-        pdf.set_font("Arial", "B", 16)
-        pdf.cell(0, 10, "AB Construction Report", 0, 1, 'C')
-        pdf.ln(10)
-
-        pdf.set_font("Arial", size=12)
-        # Add customer information
-        pdf.cell(0, 10, f"Customer Name: {customer.full_name},  Mobile No: {customer.mobile_no}, Email: {customer.email_id or 'N/A'}", 0, 1, 'L')
-        pdf.cell(0, 10, f"Address: {customer.address or 'N/A'}", 0, 1, 'L')
-        pdf.ln(10)
-
-        # Add summary
-        pdf.set_font("Arial", style="B", size=12)
-        if data:  # Check if there are any records
-            # Print the header once using the first record's category and subcategory
-            pdf.cell(0, 10, f"Records for {data[0].category.name} - {data[0].subcategory.name}", ln=True, align="C")
-
-        pdf.set_font("Arial", size=12)
+        if data:
+            _section_title(pdf, f"Records for {data[0].category.name} - {data[0].subcategory.name}")
         total_amount = 0
-        col_widths = [30, 40, 30, 50]  # Adjusted column widths
+        rows = []
         for detail in data:
-            pdf.cell(col_widths[0], 10, detail.date.strftime('%d-%m-%Y') if detail.date else '', 1, 0, 'L')
-            pdf.cell(col_widths[1], 10, f"{detail.amount:.2f}", 1, 0, 'L')
-            pdf.cell(col_widths[2], 10, detail.method if detail.method else '', 1, 0, 'L')
-            truncated_description = (detail.description or '')[:30] + ('...' if len(detail.description or '') > 30 else '')
-            pdf.cell(col_widths[3], 10, truncated_description, 1, 0, 'L')
-            pdf.ln(10)
             total_amount += detail.amount
+            rows.append([
+                detail.date.strftime('%d-%m-%Y') if detail.date else '',
+                _money(detail.amount),
+                detail.method if detail.method else '',
+                (detail.description or '')[:50],
+            ])
 
-        pdf.ln(10)
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, f"Total Amount: {total_amount:.2f}", ln=True, align="R")
+        rows.append(["", _money(total_amount), "Total", ""])
+        _draw_table(
+            pdf,
+            ["Date", "Amount", "Method", "Description"],
+            rows,
+            [32, 40, 34, 82],
+            ["L", "R", "L", "L"],
+            highlight_last=True,
+        )
 
-        # Output PDF content and ensure it is bytes
-        pdf_data = bytes(pdf.output(dest='S').encode('latin-1'))  # Convert bytearray to bytes
-        response = Response(pdf_data, mimetype='application/pdf')
-        response.headers['Content-Disposition'] = f'attachment;filename={customer.full_name}_{customer.mobile_no}_Record.pdf'
-        return response
+        _report_footer(pdf, report_generated_at)
+        return _pdf_response(pdf, f"{customer.full_name}_{customer.mobile_no}_Record.pdf")
 
     except Exception as e:
         print(f"Error exporting subcat work details: {e}")
@@ -991,52 +1193,35 @@ def export_subcategory_pdf(subcategory_id):
     ist_now = datetime.now(timezone.utc) + ist_offset
     report_generated_at = ist_now.strftime("%d-%m-%Y %H:%M:%S")  # Format: DD-MM-YYYY HH:MM:SS
 
-    # Create a PDF
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-
-    # Title
-    pdf.set_font("Arial", style="B", size=16)
-    pdf.cell(0, 10, f"AB Construction Report", 0, 1, 'C')
-    pdf.cell(200, 10, f"Records for {subCat.name}", ln=True, align="C")
-    pdf.ln(10)
-
-    # Add table headers
-    pdf.set_font("Arial", style="B", size=12)
-    pdf.cell(40, 10, "Customer Name", border=1, align="C")
-    pdf.cell(30, 10, "Date", border=1, align="C")
-    pdf.cell(30, 10, "Amount", border=1, align="C")
-    pdf.cell(30, 10, "Method", border=1, align="C")
-    pdf.cell(50, 10, "Description", border=1, align="C")
-    pdf.ln()
-
-    # Add table rows
-    pdf.set_font("Arial", size=12)
+    pdf = _new_report_pdf("AB Construction Report", f"Records for {subCat.name}")
+    _section_title(pdf, f"Records for {subCat.name}")
+    rows = []
+    total_amount = 0
     for record in work_details:
         cust = (db.session.query(Customer)
           .filter(Customer.id == record.customer_id)
           .first()
         )
-        pdf.cell(40, 10, cust.full_name, border=1)
-        pdf.cell(30, 10, record.date.strftime('%d-%m-%Y'), border=1)
-        pdf.cell(30, 10, f"{record.amount:.2f}", border=1)
-        pdf.cell(30, 10, record.method or "N/A", border=1)
-        pdf.cell(50, 10, record.description or "N/A", border=1)
-        pdf.ln()
+        total_amount += record.amount or 0
+        rows.append([
+          cust.full_name if cust else "N/A",
+          record.date.strftime('%d-%m-%Y') if record.date else "",
+          _money(record.amount),
+          record.method or "N/A",
+          (record.description or "N/A")[:42],
+        ])
+    rows.append(["", "", _money(total_amount), "Total", ""])
+    _draw_table(
+      pdf,
+      ["Customer", "Date", "Amount", "Method", "Description"],
+      rows,
+      [42, 28, 34, 28, 58],
+      ["L", "L", "R", "L", "L"],
+      highlight_last=True,
+    )
 
-    # Footer
-    pdf.ln(10)
-    pdf.set_font("Arial", size=10)
-    pdf.cell(200, 10, txt=f"Report generated at: {report_generated_at}", ln=True, align='R')
-    pdf.ln(10)
-
-    # Output PDF content and ensure it is bytes
-    pdf_data = bytes(pdf.output(dest='S').encode('latin-1'))  # Convert bytearray to bytes
-    response = Response(pdf_data, mimetype='application/pdf')
-    response.headers['Content-Disposition'] = f'attachment;filename=Report_{subCat.name}.pdf'
-    return response
+    _report_footer(pdf, report_generated_at)
+    return _pdf_response(pdf, f"Report_{subCat.name}.pdf")
 
 @app.route('/company_expense_work_details', methods=['GET', 'POST'])
 def company_expense_work_details():
@@ -1135,5 +1320,3 @@ def validate_work_detail(mapper, connection, target):
 if __name__ == '__main__':
     setup_database()
     app.run(debug=True)
-
-

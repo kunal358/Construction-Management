@@ -79,8 +79,9 @@
     
     .styled-table thead th {
         position: sticky;
-        top: 0;
-        background-color: #f4f4f4;
+        top: 46px;
+        background-color: var(--brand-blue-dark);
+        color: #ffffff;
         z-index: 2;
     }
     
@@ -94,8 +95,9 @@
     }                                                                           
     table th {                                                                  
         position: sticky;                                                       
-        top: 0;                                                                 
-        background: white; /* Ensure the header has a background color */       
+        top: 46px;                                                                 
+        background: var(--brand-blue-dark);
+        color: #ffffff;
         z-index: 2;                                                             
     }                                                                           
     th, td {                                                                    
@@ -104,7 +106,8 @@
         text-align: center;                                                     
     }                                                                           
     th {                                                                        
-        background-color: #f2f2f2;                                              
+        background-color: var(--brand-blue-dark);
+        color: #ffffff;
     }                                                                           
     tr:nth-child(even) {                                                        
         background-color: #f9f9f9;                                              
@@ -121,14 +124,38 @@
       overflow-y: auto; /* Add scrollbar if content overflows vertically */
       gap: 20px;
     }
+    .styled-table th,
+    .styled-table td {
+      white-space: nowrap;
+    }
+    .styled-table td:nth-child(5) {
+      white-space: normal;
+    }
+    .summary-record-container .summary-box h2,
+    .summary-record-container .record-box h2 {
+      position: sticky;
+      top: -1px;
+      z-index: 10;
+      margin: -15px -15px 12px;
+      padding: 14px 15px 10px;
+      background: #f9f9f9;
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 -22px 0 22px #f9f9f9;
+    }
     </style>
 </head>
 <body>
   <div class="navigation">
-    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Home</a>
-    <a href="{{ url_for('manage_customers') }}" class="btn btn-secondary">Manage Customers</a>
-    <a href="{{ url_for('manage_expenses') }}" class="btn btn-secondary">Internal Expenses</a>
-    <a href="{{ url_for('manage_categories') }}" class="btn btn-secondary">Manage Categories</a>
+    <a href="{{ url_for('dashboard') }}" class="brand-link" aria-label="AB Construction dashboard">
+      <img src="{{ url_for('static', filename='images/ab-construction-logo.png') }}" alt="AB Construction">
+      <span>AB Construction</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a href="{{ url_for('dashboard') }}">Home</a>
+      <a href="{{ url_for('manage_customers') }}">Customers</a>
+      <a href="{{ url_for('manage_expenses') }}">Internal Expenses</a>
+      <a href="{{ url_for('manage_categories') }}">Categories</a>
+    </nav>
   </div>
   <div class="container">
     <!-- Page Title -->
@@ -150,9 +177,8 @@
     {% endwith %}
     <div class="summary-work">
       <h2>Add Work Detail for Customers</h2>
-      <form class="form-row" method="POST" action="{{ url_for('company_expense_work_details') }}">
-        <div class="form-row">
-        <div class="form-group">
+      <form class="form-row inline-entry-form work-detail-entry-form" method="POST" action="{{ url_for('company_expense_work_details') }}">
+        <div class="form-group field-customer">
           <select name="cust_id" id="cust_id" required>
             <option value="" disabled selected>Select Customer</option>
             {% for cust in customers %}
@@ -177,27 +203,24 @@
             <option value="" disabled selected>Select Subcategory</option>
           </select>
         </div>
-        <div class="form-group" style="position: relative; display: inline-block;">
+        <div class="form-group amount-field" style="position: relative; display: inline-block;">
           <input type="text" id="cust_amount" name="cust_amount" required pattern="\d+(\.\d{1,2})?" placeholder="Amount" maxlength="10" style="width: 7em;">
           <span id="tooltip" style="visibility: hidden; position: absolute; top: 120%; left: 0; background-color: #dff0d8; color: #333; 
               padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; white-space: nowrap; z-index: 1;">
               Amount in words
           </span>
         </div>
-        </div>
-        <div class="form-row">
         <div class="form-group">
           <select name="cust_method" id="cust_method" required>
             <option value="" disabled selected>Select Method</option>
           </select>
         </div>
-        <div class="form-group">
+        <div class="form-group field-description">
           <input type="text" name="cust_description" id="cust_description" placeholder="Description (Optional)">
         </div>
 
-        <div class="form-group">
+        <div class="form-group action-field">
           <button type="submit">Insert</button>
-        </div>
         </div>
       </form>
     </div>
@@ -269,8 +292,8 @@
     <div class="summary-work">
     <section class="form-section">
         <h2>Add Expense</h2>
-        <form action="/company_expenses" method="POST" class="form-row">
-          <div class="form-group">
+        <form action="/company_expenses" method="POST" class="form-row inline-entry-form expense-entry-form">
+          <div class="form-group field-description">
             <input type="date" name="date" id="date" required pattern="\d{4}-\d{2}-\d{2}">
           </div>
           <div class="form-group">
@@ -286,17 +309,33 @@
           <div class="form-group">
             <input type="text" name="description" placeholder="Description (Optional)">
           </div>
-          <div class="form-group" style="position: relative; display: inline-block;">
+          <div class="form-group amount-field" style="position: relative; display: inline-block;">
             <input type="text" name="amount" id="exp_amount" placeholder="Amount" required pattern="\d+(\.\d{1,2})?" style="width: 7em;" maxlength="10">
             <span id="exp_tooltip" style="visibility: hidden; position: absolute; top: 120%; left: 0; background-color: #dff0d8; color: #333; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; white-space: nowrap; z-index: 1;">
               Amount in words
             </span>
           </div>
-          <div class="form-group">
+          <div class="form-group action-field">
             <button type="submit">Insert</button>
           </div>
         </form>
     </section>
+    </div>
+    <div class="summary-work">
+      <h2>Export Internal Expenses</h2>
+      <form action="{{ url_for('export_expenses_pdf') }}" method="GET" class="form-row">
+        <div class="form-group">
+          <label for="export_start_date">From Date</label>
+          <input type="date" name="start_date" id="export_start_date" pattern="\d{4}-\d{2}-\d{2}">
+        </div>
+        <div class="form-group">
+          <label for="export_end_date">To Date</label>
+          <input type="date" name="end_date" id="export_end_date" pattern="\d{4}-\d{2}-\d{2}">
+        </div>
+        <div class="form-group">
+          <button type="submit">Export PDF</button>
+        </div>
+      </form>
     </div>
   </div>
 <script>

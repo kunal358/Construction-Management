@@ -1,8 +1,8 @@
 Withdraw_cash, Withdraw cash from Bank
 Deposite_Cash,Deposite cash into Bank
 Fuel,Disel/Petrol cost
-Salary Ankesh,Salary Distribution to Ankesh
-Salary Suraj,Salary Distribution to Suraj
+Salary Ankesh,Salary to Ankesh
+Salary Suraj,Salary to Suraj
 Tax,Tax Payment
 Others,Other expense
 Car,Car Expense
@@ -10,3 +10,6 @@ Food,Food Expense
 Local Trv,Local Trv Expense
 Wine,Wine Expense 
 material,material trn Expense
+Elect mate,elect mate Expence
+Plum mate,Plum mate Expence
+Fasttag,Fasttag Expence

@@ -1,3 +1,9 @@
+--to acitvate the venv
+source venev/bin/activate
+
+-- to push changes into git branch
+git push
+
 -- To query table
 sqlite2 construction.db
 

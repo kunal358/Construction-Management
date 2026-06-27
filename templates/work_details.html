@@ -16,7 +16,8 @@
     table th {
         position: sticky;
         top: 0;
-        background: white; /* Ensure the header has a background color */
+        background: var(--brand-blue-dark);
+        color: #ffffff;
         z-index: 2;
     }
     th, td {
@@ -25,7 +26,8 @@
         text-align: center;
     }
     th {
-        background-color: #f2f2f2;
+        background-color: var(--brand-blue-dark);
+        color: #ffffff;
     }
     tr:nth-child(even) {
         background-color: #f9f9f9;
@@ -35,17 +37,21 @@
     .table-summary {
         width: 100%;
         border-collapse: collapse;
+        table-layout: auto;
         text-align: left;
         max-height: 200px; /* Adjust height as needed */
-        overflow-y: auto;
-        display: block;
+        display: table;
     }
     
     /* Table header styling */
     .table-summary thead th {
-        background-color: #f4f4f4;
+        position: sticky;
+        top: 48px;
+        background-color: var(--brand-blue-dark);
+        color: #ffffff;
         border-bottom: 1px solid #ddd;
         border-top: 1px solid #ddd;
+        z-index: 4;
     }
     
     .table-summary thead th,.table-summary tbody td {
@@ -57,18 +63,23 @@
     /* Styling for the table */
     .table-record {
         width: 100%;
+        min-width: 980px;
         border-collapse: collapse;
+        table-layout: auto;
         text-align: left;
-        max-height: 200px; /* Adjust height as needed */
-        overflow-y: auto;
-        display: block;
+        overflow: visible;
+        display: table;
     }
     
     /* Table header styling */
     .table-record thead th {
-        background-color: #f4f4f4;
+        position: sticky;
+        top: 48px;
+        background-color: var(--brand-blue-dark);
+        color: #ffffff;
         border-bottom: 1px solid #ddd;
         border-top: 1px solid #ddd;
+        z-index: 4;
     }
     
     .table-record thead th,.table-record tbody td {
@@ -78,7 +89,19 @@
     }
     .table-record tbody td:last-child {
         text-align: center;
-        width: 10%; /* Fixed width */
+        min-width: 140px;
+    }
+    .table-summary th,
+    .table-summary td,
+    .table-record th,
+    .table-record td,
+    .table-container th,
+    .table-container td {
+        white-space: nowrap;
+    }
+    .table-record td:nth-child(6) {
+        white-space: normal;
+        min-width: 180px;
     }
 
     .form-group {
@@ -125,6 +148,7 @@
         gap: 20px; /* Adjust spacing between the boxes */
         box-sizing: border-box;
         margin-bottom: 20px;
+        align-items: flex-start;
     }
 
     /* Make both boxes take up equal width */
@@ -139,22 +163,40 @@
     }
 
     .summary-box {
-        flex: 0 0 25%; /* Fixed 25% width */
-        max-width: 25%;
+        flex: 0 0 calc(32% - 10px);
+        max-width: calc(32% - 10px);
         padding: 20px;
         border: 1px solid #ccc;
         border-radius: 8px;
         box-sizing: border-box;
+        min-width: 0;
+        max-height: 360px;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
     .record-box {
-        flex: 0 0 75%; /* Fixed 75% width */
-        max-width: 75%;
+        flex: 0 0 calc(68% - 10px);
+        max-width: calc(68% - 10px);
         padding: 20px;
         border: 1px solid #ccc;
         border-radius: 8px;
         background-color: #ffffff;
         box-sizing: border-box;
+        min-width: 0;
+        max-height: 360px;
+        overflow: auto;
+    }
+    .work-summary-record-row .summary-box h2,
+    .work-summary-record-row .record-box h2 {
+        position: sticky;
+        top: -1px;
+        z-index: 10;
+        margin: -20px -20px 12px;
+        padding: 16px 20px 12px;
+        background: #ffffff;
+        border-bottom: 1px solid var(--line);
+        box-shadow: 0 -24px 0 24px #ffffff;
     }
     .summary {
         max-width: 100%;
@@ -165,22 +207,24 @@
     }
 
     .money-box {
-        flex: 0 0 50%;
-        max-width: 50%;
+        flex: 0 0 calc(64% - 10px);
+        max-width: calc(64% - 10px);
         padding: 20px;
         border: 1px solid #ccc;
         border-radius: 8px;
         box-sizing: border-box;
+        min-width: 0;
     }
 
     .upload-box {
-        flex: 0 0 50%; /* Fixed 75% width */
-        max-width: 50%;
+        flex: 0 0 calc(36% - 10px);
+        max-width: calc(36% - 10px);
         padding: 20px;
         border: 1px solid #ccc;
         border-radius: 8px;
         background-color: #ffffff;
         box-sizing: border-box;
+        min-width: 0;
     }
 
     /* Styling for the table */
@@ -196,7 +240,8 @@
     
     /* Table header styling */
     .styled-table thead th {
-        background-color: #f4f4f4;
+        background-color: var(--brand-blue-dark);
+        color: #ffffff;
         border-bottom: 1px solid #ddd;
         border-top: 1px solid #ddd;
     }
@@ -242,15 +287,59 @@
         flex: 3;
     }
 
+    .record-actions {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .record-actions form {
+        display: inline-flex;
+        margin: 0;
+    }
+
+    .record-actions .btn-sm,
+    .record-actions button.btn-sm {
+        min-height: 30px;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        line-height: 1;
+        box-shadow: none;
+    }
+
+    @media screen and (max-width: 980px) {
+        .form-container-row {
+            flex-direction: column;
+        }
+
+        .summary-box,
+        .record-box,
+        .money-box,
+        .upload-box {
+            flex: 1 1 auto;
+            max-width: 100%;
+            width: 100%;
+        }
+    }
+
   </style>
 </head>
 
 <body>
   <div class="navigation">
-    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Home</a>
-    <a href="{{ url_for('manage_customers') }}" class="btn btn-secondary">Manage Customers</a>
-    <a href="{{ url_for('manage_expenses') }}" class="btn btn-secondary">Internal Expenses</a>
-    <a href="{{ url_for('manage_categories') }}" class="btn btn-secondary">Manage Categories</a>
+    <a href="{{ url_for('dashboard') }}" class="brand-link" aria-label="AB Construction dashboard">
+      <img src="{{ url_for('static', filename='images/ab-construction-logo.png') }}" alt="AB Construction">
+      <span>AB Construction</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a href="{{ url_for('dashboard') }}">Home</a>
+      <a href="{{ url_for('manage_customers') }}">Customers</a>
+      <a href="{{ url_for('manage_expenses') }}">Internal Expenses</a>
+      <a href="{{ url_for('manage_categories') }}">Categories</a>
+    </nav>
   </div>
 
   <div class="container">
@@ -381,7 +470,7 @@
     </section>
 
 
-    <section class="form-container-row">
+    <section class="form-container-row work-summary-record-row">
       <div class="summary-box">
         <h2>Total Category-wise</h2>
         <table class="table-summary">
@@ -430,10 +519,12 @@
               <td>{{ record.method or 'N/A' }}</td>
               <td>{{ record.description or 'N/A' }}</td>
               <td>
-                <a href="{{ url_for('edit_work_detail', customer_id=customer.id, work_id=record.id) }}" class="btn btn-primary btn-sm"><strong>Edit</strong></a>
-                <form action="{{ url_for('delete_work_detail', customer_id=customer.id, work_id=record.id) }}" method="POST" style="display:inline;">
-                  <button type="submit" class="btn btn-primary btn-sm" onclick="confirmDelete(this)">Delete</button>
-                </form>
+                <div class="record-actions">
+                  <a href="{{ url_for('edit_work_detail', customer_id=customer.id, work_id=record.id) }}" class="btn btn-primary btn-sm">Edit</a>
+                  <form action="{{ url_for('delete_work_detail', customer_id=customer.id, work_id=record.id) }}" method="POST">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">Delete</button>
+                  </form>
+                </div>
               </td>
             </tr>
             {% endfor %}
@@ -442,7 +533,7 @@
       </div>
     </section>
 
-    <section class="form-container-row">
+    <section class="form-container-row money-upload-row">
       <div class="money-box">
       <h2>Money Summary</h2>
       <table class="table-container">
