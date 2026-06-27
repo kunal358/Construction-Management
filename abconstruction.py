@@ -1,12 +1,13 @@
 import os
 import sys
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response, session
 from models import *
 from sqlalchemy import desc, func, or_, select
 from datetime import datetime, timezone, timedelta
 import pytz
 from werkzeug.utils import secure_filename
+from werkzeug.security import check_password_hash
 from fpdf import FPDF
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -19,6 +20,68 @@ DANGER_RED = (180, 35, 24)
 TEXT_DARK = (23, 33, 43)
 TEXT_MUTED = (102, 112, 133)
 LINE_GREY = (217, 226, 234)
+
+def _auth_enabled():
+    return bool(os.environ.get("AB_AUTH_USERNAME") and (os.environ.get("AB_AUTH_PASSWORD_HASH") or os.environ.get("AB_AUTH_PASSWORD")))
+
+def _valid_login(username, password):
+    expected_username = os.environ.get("AB_AUTH_USERNAME", "")
+    password_hash = os.environ.get("AB_AUTH_PASSWORD_HASH", "")
+    plain_password = os.environ.get("AB_AUTH_PASSWORD", "")
+
+    if username != expected_username:
+        return False
+    if password_hash:
+        return check_password_hash(password_hash, password)
+    return bool(plain_password and password == plain_password)
+
+def _safe_next_url(next_url):
+    if next_url and next_url.startswith("/") and not next_url.startswith("//"):
+        return next_url
+    return url_for("dashboard")
+
+@app.context_processor
+def inject_auth_state():
+    return {
+        "auth_enabled": _auth_enabled(),
+        "logged_in": bool(session.get("logged_in")),
+    }
+
+@app.before_request
+def require_login():
+    if not _auth_enabled():
+        return None
+
+    allowed_endpoints = {"login", "static"}
+    if request.endpoint in allowed_endpoints:
+        return None
+
+    if session.get("logged_in"):
+        return None
+
+    return redirect(url_for("login", next=request.full_path if request.query_string else request.path))
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if not _auth_enabled():
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        if _valid_login(username, password):
+            session.clear()
+            session["logged_in"] = True
+            session["username"] = username
+            return redirect(_safe_next_url(request.args.get("next")))
+        flash("Invalid username or password.", "danger")
+
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 def _safe_pdf_text(value):
     return str(value if value is not None else "").encode("latin-1", "replace").decode("latin-1")

@@ -133,6 +133,9 @@
       <a href="{{ url_for('manage_customers') }}">Customers</a>
       <a href="{{ url_for('manage_expenses') }}">Internal Expenses</a>
       <a href="{{ url_for('manage_categories') }}">Categories</a>
+      {% if auth_enabled and logged_in %}
+      <a href="{{ url_for('logout') }}">Logout</a>
+      {% endif %}
     </nav>
   </div>
 
@@ -212,4 +215,3 @@
   </div>
 </body>
 </html>
-

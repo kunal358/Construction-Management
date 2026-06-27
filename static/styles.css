@@ -791,6 +791,40 @@ tbody tr:last-child td {
     font-weight: 700;
 }
 
+.login-page {
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
+.login-shell {
+    width: min(420px, 100%);
+}
+
+.login-card {
+    padding: 32px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: var(--shadow);
+}
+
+.login-card img {
+    display: block;
+    width: 130px;
+    height: auto;
+    margin-bottom: 18px;
+}
+
+.login-card h1 {
+    margin-bottom: 22px;
+    font-size: 30px;
+}
+
+.login-card button {
+    width: 100%;
+}
+
 .clickable {
     color: var(--brand-blue);
     cursor: pointer;
