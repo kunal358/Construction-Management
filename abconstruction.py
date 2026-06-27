@@ -864,7 +864,7 @@ def export_expenses_pdf():
             query = query.filter(Expense.date <= end_date)
             criteria.append(f"To: {end_date.strftime('%d-%m-%Y')}")
 
-        expenses = query.order_by(desc(Expense.date)).all()
+        expenses = query.order_by(Expense.category.asc(), desc(Expense.date)).all()
         if not expenses:
             flash('No internal expense records found for selected export criteria.', 'danger')
             return redirect(url_for('manage_expenses'))
@@ -918,23 +918,41 @@ def export_expenses_pdf():
             ["L", "R"],
         )
 
-        _section_title(pdf, "Expense Details")
-        detail_rows = []
+        _section_title(pdf, "Expense Details By Category")
+        expenses_by_category = {}
         for expense in expenses:
-            detail_rows.append([
-                expense.date.strftime('%d-%m-%Y') if expense.date else '',
-                expense.category,
-                _money(expense.amount),
-                expense.method or 'N/A',
-                (expense.description or 'N/A')[:38],
-            ])
-        detail_rows.append(["", "Total", _money(total_amount), "", ""])
+            category_name = expense.category or "Uncategorized"
+            expenses_by_category.setdefault(category_name, []).append(expense)
+
+        for category_name in sorted(expenses_by_category):
+            category_expenses = expenses_by_category[category_name]
+            category_total = sum(expense.amount or 0 for expense in category_expenses)
+            detail_rows = []
+            for expense in category_expenses:
+                detail_rows.append([
+                    expense.date.strftime('%d-%m-%Y') if expense.date else '',
+                    _money(expense.amount),
+                    expense.method or 'N/A',
+                    (expense.description or 'N/A')[:76],
+                ])
+            detail_rows.append(["", _money(category_total), "Subtotal", ""])
+
+            _draw_table(
+                pdf,
+                [f"{category_name}", "Amount", "Method", "Description"],
+                detail_rows,
+                [32, 34, 30, 94],
+                ["L", "R", "L", "L"],
+                highlight_last=True,
+            )
+            pdf.ln(2)
+
         _draw_table(
             pdf,
-            ["Date", "Category", "Amount", "Method", "Description"],
-            detail_rows,
-            [26, 42, 34, 28, 60],
-            ["L", "L", "R", "L", "L"],
+            ["Grand Total", "Amount"],
+            [["All Categories", _money(total_amount)]],
+            [118, 72],
+            ["L", "R"],
             highlight_last=True,
         )
 
