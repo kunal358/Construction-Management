@@ -5,11 +5,25 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="${APP_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 BACKUP_DIR="${BACKUP_DIR:-$APP_DIR/backups}"
 STAMP="$(date +%Y%m%d_%H%M%S)"
+BACKUP_KEEP="${BACKUP_KEEP:-5}"
 UPLOAD_DIR="$APP_DIR/static/uploaded_files"
 UPLOAD_MANIFEST="$BACKUP_DIR/uploaded_files.sha256"
 NEW_UPLOAD_MANIFEST="$BACKUP_DIR/uploaded_files_$STAMP.sha256.tmp"
 
 mkdir -p "$BACKUP_DIR"
+
+prune_backups() {
+  local pattern="$1"
+  local count
+  local oldest
+
+  count="$(find "$BACKUP_DIR" -maxdepth 1 -type f -name "$pattern" | wc -l | tr -d ' ')"
+  while [ "$count" -gt "$BACKUP_KEEP" ]; do
+    oldest="$(find "$BACKUP_DIR" -maxdepth 1 -type f -name "$pattern" | sort | head -n 1)"
+    rm -f "$oldest"
+    count=$((count - 1))
+  done
+}
 
 if [ -f "$APP_DIR/instance/construction.db" ]; then
   cp "$APP_DIR/instance/construction.db" "$BACKUP_DIR/construction_$STAMP.db"
@@ -38,7 +52,7 @@ if [ -d "$UPLOAD_DIR" ]; then
   fi
 fi
 
-find "$BACKUP_DIR" -type f -name "*.db" -mtime +30 -delete
-find "$BACKUP_DIR" -type f -name "*.tar.gz" -mtime +30 -delete
+prune_backups "construction_*.db"
+prune_backups "uploaded_files_*.tar.gz"
 
 echo "Backup completed: $BACKUP_DIR"
